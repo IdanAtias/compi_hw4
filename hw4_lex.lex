@@ -50,6 +50,9 @@ print			return PRINT;
 input 			return INPUT;
 {id}			return ID;
 {string}		return STRING;
+
+# The rules below (with the #) don't work. need to check why...
+
 #true			return TRUE;
 #false			return FALSE;
 #if			return IF;
@@ -61,6 +64,8 @@ input 			return INPUT;
 #num			return NUM;
 #switch			return SWITCH;
 #case 			return CASE;
+
+
 {ignore}		;
 .			{handleLexError(yylineno);}
 

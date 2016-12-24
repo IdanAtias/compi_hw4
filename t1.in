@@ -1,0 +1,8 @@
+C x =4 C;
+K y = 100 K;
+if(x>y)
+{
+	print "ok";
+}
+int z;
+

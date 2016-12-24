@@ -1,0 +1,13 @@
+int a;
+int b = 5;
+
+matrix c(2, 3);
+matrix d(2, 3) = c;
+matrix e(2, 3) = [1, 2, 3; 4, 5, 6];
+
+[1, 2, 3; 4, 5, 6];
+
+int f = d[1, 1];
+int g = e[1, 1];
+
+int h = d(1, 1);

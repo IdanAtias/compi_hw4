@@ -1,0 +1,45 @@
+// Matrix operations
+
+matrix m_square(3,3) = [1, 2, 3; 4, 5, 6; 7, 8, 9];
+matrix m(2,3) = [1, 2, 3; 4, 5, 6];
+
+m_square[0, 0];
+m_square[0, 1];
+m_square[0, 2];
+m_square[1, 0];
+m_square[1, 1];
+m_square[1, 2];
+m_square[2, 0];
+m_square[2, 1];
+m_square[2, 2];
+
+transpose(m);
+transpose(m_square);
+
+matrix I(3,3) = [1, 0, 0; 0, 1, 0; 0, 0, 1];
+
+m_square + I;
+
+m_square - I;
+
+m_square :: I;
+m_square :: transpose(m);
+
+m_square * I;
+
+m_square * m_square;
+m * transpose(m);
+
+
+-m;
+
+int a = 3;
+
+m * a;
+a * m;
+m * -1;
+m * (-1);
+m * 0;
+
+m_square ^ (a);
+

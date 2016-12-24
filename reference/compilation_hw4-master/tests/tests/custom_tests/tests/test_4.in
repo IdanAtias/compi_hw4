@@ -1,0 +1,2 @@
+int a = 5;
+matrix m(3, a);

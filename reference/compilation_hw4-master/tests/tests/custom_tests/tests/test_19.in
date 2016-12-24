@@ -1,0 +1,7 @@
+matrix m1(3,3) = [1, 2, 3; 4, 5, 6; 7, 8, 9];
+matrix m2(2,3) = [1, 2, 3; 4, 5, 6];
+// Should work
+m1 :: transpose(m2);
+// Testing wrong dimensions
+m1 :: m2;
+

@@ -1,0 +1,433 @@
+%{
+	#include "hw4.hpp"
+	#include <stack>
+	#include <vector>
+	#include "SymTable.hpp"
+	#include "output.hpp"
+	
+	using namespace std;
+
+	extern int yylex();
+	extern int yylineno;
+	
+	vector<SymTable> tablesStack;
+	stack<int> offsetStack;
+	
+	unsigned int whileCounter = 0;
+	
+	bool ifFlag = false;
+	
+	int yyerror(string message);
+%}
+
+%token LP LC RC SC INT NIS AGORA PRINT INPUT ID STRING TRUE FALSE IF WHILE BREAK BOOL NUM
+%right ASSIGN
+%left OR
+%left AND
+%left REL_OP
+%left PLUS MINUS
+%left MULT DIV
+%right NOT
+
+%nonassoc RP
+%nonassoc ELSE
+
+
+%%
+	
+Prog	:	InitMarker Statements
+			{
+				output::endScope();
+				tablesStack.back().printTableEntries();
+				tablesStack.pop_back();
+				offsetStack.pop();
+			}
+	;
+
+InitMarker : 	{
+					tablesStack.push_back(SymTable());
+					offsetStack.push(0);
+				}
+	;
+	
+Statements	:	Statements Statement
+			| 	Statement
+	;
+
+EndScopeMarker	:	{
+						output::endScope();
+						tablesStack.back().printTableEntries();
+						tablesStack.pop_back();
+						offsetStack.pop();
+					}
+	;
+	
+StartScopeMarker	:	{
+							tablesStack.push_back(SymTable());
+							offsetStack.push(offsetStack.top());
+							ifFlag = false;
+						}					
+	;
+	
+Statement	:	LC StartScopeMarker Statements EndScopeMarker RC
+			| 	Type ID SC
+				{
+					$2.type = $1.type;
+					if (ifFlag) {
+						tablesStack.push_back(SymTable());
+						offsetStack.push(offsetStack.top());
+					}
+					
+					if (tablesStack.back().isVarDefined($2.id)) {
+						output::errorDef(yylineno, $2.id.c_str());
+						exit(1);
+					}
+					tablesStack.back().insertVar($2.id,offsetStack.top(),$2.type);
+					int newOffset = offsetStack.top() + 1;
+					offsetStack.pop();
+					offsetStack.push(newOffset);
+					
+					if (ifFlag) {
+						output::endScope();
+						tablesStack.back().printTableEntries();
+						tablesStack.pop_back();
+						offsetStack.pop();
+						ifFlag = false;
+					}
+				}
+			| 	Type ID ASSIGN Exp SC
+				{
+					if ($1.type != $4.type) {
+						if ($1.type == string("NIS") && $4.type != string("AGORA") || $1.type == string("AGORA") && $4.type != string("NIS")) {
+							output::errorMismatch(yylineno);
+							exit(1);
+						}
+					}
+					$2.type = $1.type;
+					
+					if (ifFlag) {
+						tablesStack.push_back(SymTable());
+						offsetStack.push(offsetStack.top());
+					}
+					
+					if (tablesStack.back().isVarDefined($2.id)) {
+						output::errorDef(yylineno, $2.id.c_str());
+						exit(1);
+					}
+					
+					tablesStack.back().insertVar($2.id,offsetStack.top(),$2.type);
+					int newOffset = offsetStack.top() + 1;
+					offsetStack.pop();
+					offsetStack.push(newOffset);
+					
+					if (ifFlag) {
+						output::endScope();
+						tablesStack.back().printTableEntries();
+						tablesStack.pop_back();
+						offsetStack.pop();
+						ifFlag = false;
+					}
+				}
+			|	ID ASSIGN Exp SC
+				{
+					ifFlag = false;
+					bool isDefined = false;
+					for (vector<SymTable>::reverse_iterator iter = tablesStack.rbegin(); iter != tablesStack.rend(); ++iter) {
+						if(iter->isVarDefined($1.id)) {
+							$1.type = iter->getVarType($1.id);
+							if ($1.type != $3.type) {
+								if ($1.type == string("NIS") && $3.type != string("AGORA") || 
+									$1.type == string("AGORA") && $3.type != string("NIS") ||
+									$1.type != string("NIS") &&	$1.type != string("AGORA")) {
+									output::errorMismatch(yylineno);
+									exit(1);
+								}
+							}
+							isDefined = true;
+							break;
+						}
+					}
+					if (!isDefined) {
+						output::errorUndef(yylineno, $1.id.c_str());
+						exit(1);
+					}
+				}
+			|	PRINT ID SC
+				{
+					ifFlag = false;
+					bool isDefined = false;
+					for (vector<SymTable>::reverse_iterator iter = tablesStack.rbegin(); iter != tablesStack.rend(); ++iter) {
+						if (iter->isVarDefined($2.id)) {
+							$2.type = iter->getVarType($2.id);
+							isDefined = true;
+							break;
+						}
+					}
+					if (!isDefined) {
+						output::errorUndef(yylineno,$2.id.c_str());
+						exit(1);
+					}
+					if ($2.type != string("INT") && $2.type != string("AGORA") && $2.type != string("NIS")) {
+						output::errorMismatch(yylineno);
+						exit(1);
+					}
+				}
+			|	PRINT STRING SC 
+				{
+					ifFlag = false;
+				}
+			|	INPUT ID SC
+				{
+					ifFlag = false;
+					bool isDefined = false;
+					for (vector<SymTable>::reverse_iterator iter = tablesStack.rbegin(); iter != tablesStack.rend(); ++iter) {
+						if (iter->isVarDefined($2.id)) {
+							$2.type = iter->getVarType($2.id);
+							isDefined = true;
+							break;
+						}
+					}
+					if (!isDefined) {
+						output::errorUndef(yylineno,$2.id.c_str());
+						exit(1);
+					}
+					if ($2.type != string("INT") && $2.type != string("AGORA") && $2.type != string("NIS")) {
+						output::errorMismatch(yylineno);
+						exit(1);
+					}
+				}
+			|	IF LP Exp RP IfMarker Statement
+				{
+					if ($3.type != string("BOOL")) {
+						output::errorMismatch(yylineno);
+						exit(1);
+					}
+				}
+			|	IF LP Exp RP IfMarker Statement ELSE ElseMarker Statement 
+				{
+					if ($3.type != string("BOOL")) {
+						output::errorMismatch(yylineno);
+						exit(1);
+					}
+				}
+			|	WHILE LP Exp RP WhileCounterMarker Statement
+				{
+					if ($3.type != string("BOOL")) {
+						output::errorMismatch(yylineno);
+						exit(1);
+					}
+					ifFlag = false;
+					whileCounter--;
+				}
+			|	BREAK SC 
+				{
+					ifFlag = false;
+					if (whileCounter == 0) {
+						output::errorUnexpectedBreak(yylineno);
+						exit(1);
+					}
+				}
+	;
+	
+ElseMarker			:	{
+							if (ifFlag) {
+								output::endScope();
+								tablesStack.back().printTableEntries();
+								tablesStack.pop_back();
+								offsetStack.pop();
+							}
+							ifFlag = true;
+						}
+	;
+	
+IfMarker			:	{
+							ifFlag = true;
+						}
+	;
+	
+WhileCounterMarker	: 	{
+							ifFlag = true;
+							whileCounter++;
+						}
+	;
+	
+CoinType	:	NIS
+				{
+					$$.type = $1.type;
+				}
+			|	AGORA
+				{
+					$$.type = $1.type;
+				}
+	;
+
+Type	:	CoinType
+			{
+				$$.type = $1.type;
+			}
+		|	INT
+			{
+				$$.type = $1.type;
+			}
+		|	BOOL
+			{
+				$$.type = $1.type;
+			}
+	;
+
+Exp		:	LP Exp RP
+			{
+				$$.type = $2.type;
+			}
+		|	Exp PLUS Exp
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if (($1.type == string("INT") &&  $3.type == string("INT")) || 
+					(($1.type == string("AGORA") || $1.type == string("NIS")) && ($3.type == string("AGORA") || $3.type == string("NIS")))
+					) {
+					$$.type = $1.type;
+				} else {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+			}
+		|	Exp MINUS Exp
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if (($1.type == string("INT") &&  $3.type == string("INT")) || 
+					(($1.type == string("AGORA") || $1.type == string("NIS")) && ($3.type == string("AGORA") || $3.type == string("NIS")))
+					) {
+					$$.type = $1.type;
+				} else {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+			}
+		|	Exp MULT Exp
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if (($1.type == string("AGORA") || $1.type == string("NIS")) && $3.type == string("INT")) {
+					$$.type = $1.type;
+				} else if (($3.type == string("AGORA") || $3.type == string("NIS")) && $1.type == string("INT")) {
+					$$.type = $3.type;
+				} else if ($1.type == string("INT") && $3.type == string("INT")) {
+					$$.type = $1.type;
+				} else {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+			}
+		|	Exp DIV Exp
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if (($1.type == string("AGORA") || $1.type == string("NIS")) && $3.type == string("INT")) {
+					$$.type = $1.type;
+				} else if ($1.type == string("INT") && $3.type == string("INT")) {
+					$$.type = $1.type;
+				} else if (($1.type == string("AGORA") || $1.type == string("NIS")) && ($3.type == string("AGORA") || $3.type == string("NIS"))) {
+					$$.type = "INT";
+				} else {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+			}
+		|	ID 
+			{
+				$$.type = string("");
+				for (vector<SymTable>::reverse_iterator iter = tablesStack.rbegin(); iter != tablesStack.rend(); ++iter) {
+					if (iter->isVarDefined($1.id)) {
+						$$.type = iter->getVarType($1.id);
+						break;
+					}
+				}
+			}
+		|	NUM 
+			{
+				$$.type = $1.type;
+			}
+		|	NUM CoinType 
+			{
+				$$.type = $2.type;
+			}
+		|	TRUE 
+			{
+				$$.type = $1.type;
+			}
+		|	FALSE 
+			{
+				$$.type = $1.type;
+			}
+		|	NOT Exp 
+			{
+				if ($2.type == string("")){
+					output::errorUndef(yylineno, $2.type.c_str());
+					exit(1);
+				}
+				$$.type = $2.type;
+			}
+		|	Exp OR Exp 
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if ($1.type != string("BOOL") || $3.type != string("BOOL")) {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+				$$.type = $1.type;
+			}
+		|	Exp AND Exp
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if ($1.type != string("BOOL") || $3.type != string("BOOL")) {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+				$$.type = $1.type;
+			}
+		|	Exp REL_OP Exp 
+			{
+				if ($1.type == string("") || $3.type == string("")){
+					output::errorUndef(yylineno, $1.type == string("") ? $1.type.c_str() : $3.type.c_str());
+					exit(1);
+				}
+				if (
+					(($1.type == string("AGORA") || $1.type == string("NIS")) && ($3.type == string("AGORA") || $3.type == string("NIS")))
+					|| ($1.type == string("INT") && $3.type == string("INT"))
+					) {
+					$$.type = "BOOL";
+				} else {
+					output::errorMismatch(yylineno);
+					exit(1);
+				}
+			}
+		
+	;
+
+%%
+
+int main()
+{
+	yyparse();
+}
+
+int yyerror(string message)
+{
+	output::errorSyn(yylineno);
+}

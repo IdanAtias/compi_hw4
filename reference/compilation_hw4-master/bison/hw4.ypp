@@ -1,0 +1,519 @@
+%{
+	#include "hw4.hpp"
+	#include "printError.h"
+	#include "SymTable.h"
+	
+	using namespace std;
+
+	extern int yylex();
+	extern int yylineno;
+	
+	list<YYSTYPE> variableList;
+	list<YYSTYPE> vectorList;
+	list<list <YYSTYPE> > matrixList;
+	int vector_size;
+	SymTable table;
+	void yyerror(string m);
+%}
+
+%token LP RP LC RC LB RB CS SC ID ASSIGN NUM TRANSPOSE TYPE ITERATION
+%left PLUS MINUS
+%left MUL DIV
+%left CONCAT
+%left TRANSPOSE
+%right ITERATION
+
+
+%%
+Stmts 	: 	Stmt
+			| Stmt Stmts
+	
+Stmt 	:	TYPE Muse SC 							{
+														  for (std::list<YYSTYPE>::iterator it=variableList.begin(); it!=variableList.end(); ++it) {
+															YYSTYPE tmp = *it;
+															if (tmp.type != $2.type) {
+																if ($1.type == "int") {
+																	printError(ScalarExpected);
+																} else {
+																	printError(MatrixExpected);
+																}
+																exit(1);
+															}
+															if (table.isVarDefined(tmp.id)) {
+																printError(RedefinedVariable, tmp.id);
+																exit(1);
+															}
+															if (tmp.type == "int") {
+																table.insertVar(tmp.id,tmp.type,tmp.val);
+															} else {
+																table.insertVar(tmp.id,tmp.type,tmp.matrix);
+															}															
+														}
+														for (std::list<YYSTYPE>::iterator it=variableList.begin(); it!=variableList.end(); ++it) {
+															YYSTYPE tmp = *it;
+															table.printTableEntries(tmp.id);
+														}
+														variableList.clear();
+													}
+			| Exp SC                                {
+														if ($1.type == "int") {
+															cout << $1.val << endl;
+														} else {
+															$1.matrix.printMatrix();
+														}
+
+													}
+
+Muse	:	Init
+			| Init CS Muse
+						
+Init 	: 	ID 									{
+													$1.type = "int";
+													$1.val = 0;
+													variableList.push_back($1);
+												}
+			| ID ASSIGN Exp						{
+													if ($3.type == "matrix") {
+														printError(ScalarExpected);
+														exit(1);
+													}
+													$1.constVar = $3.constVar;
+													$1.type = $3.type;
+													$1.val = $3.val;
+													variableList.push_back($1);
+												}
+			| ID LP Exp CS Exp RP				{
+													if ($3.type == "matrix" || $5.type == "matrix") {
+														printError(ScalarExpected);
+														exit(1);
+													}
+													if (!($3.constVar) || !($5.constVar)) {
+														printError(ConstantExpressionExpected);
+														exit(1);
+													}
+													if (($3.val <= 0) || ($5.val <= 0)) {
+														printError(PositiveNumberExpected);
+														exit(1);
+													}
+													$1.type = "matrix";
+													$1.constVar = false;
+													$1.matrix = QSMatrix<int>($3.val,$5.val,0);
+													variableList.push_back($1);
+												}
+			| ID LP Exp CS Exp RP ASSIGN Exp 	{
+													if ($3.type == "matrix" || $5.type == "matrix") {
+														printError(ScalarExpected);
+														exit(1);
+													}
+													if (!($3.constVar) || !($5.constVar)) {
+														printError(ConstantExpressionExpected);
+														exit(1);
+													}
+													if (($3.val <= 0) || ($5.val <= 0)) {
+														printError(PositiveNumberExpected);
+														exit(1);
+													}
+													if ($8.type != "matrix") {
+														printError(MatrixExpected);
+														exit(1);
+													}
+													if ($3.val != $8.matrix.get_rows() || $5.val != $8.matrix.get_cols()) {
+														printError(MatrixSemanticError);
+														exit(1);
+													}
+
+													$1.type = $8.type;
+													$1.constVar = $8.constVar;
+													$1.matrix = $8.matrix;
+													variableList.push_back($1);
+												}
+
+Exp 	: 	Exp MUL Exp						{
+												if ($1.type == "int" && $3.type == "int") {
+													$$.val = $1.val * $3.val;
+													$$.type = "int";
+												} else if ($1.type == "matrix" && $3.type == "matrix") {
+													if ($1.matrix.get_cols() != $3.matrix.get_rows()) {
+														printError(ArgumentSizeMismatch, "*", $1.matrix.get_cols(),
+														$3.matrix.get_rows());
+														exit(1);
+													}
+													$$.type = "matrix";
+													$$.matrix = $1.matrix * $3.matrix; 
+												} else if ($1.type == "matrix" && $3.type == "int") {
+													$$.type = "matrix";
+													$$.matrix = $1.matrix * $3.val;
+												} else {
+													$$.type = "matrix";
+													$$.matrix = $3.matrix * $1.val;
+												}
+												$$.constVar = $1.constVar && $3.constVar;
+											}	
+			| Exp DIV Exp					{
+												if ($1.type == "matrix" || $3.type == "matrix") {
+													ArgumentType leftArg, rightArg;
+													if ($1.type == "matrix") {
+														leftArg = TypeMatrix;
+													} else {
+														leftArg = TypeInt;
+													}
+													if ($3.type == "matrix") {
+														rightArg = TypeMatrix;
+													} else {
+														rightArg = TypeInt;
+													}
+													printError(ArgumentTypeMismatch, "/", leftArg, rightArg);
+													exit(1);
+												}
+												if ($3.val == 0) {
+													printError(DivisionByZero);
+													exit(1);
+												}
+												$$.type = "int";
+												$$.val = $1.val / $3.val;
+												$$.constVar = $1.constVar && $3.constVar;
+											}
+			| Exp PLUS Exp					{
+												if ($1.type == "int" && $3.type == "int") {
+													$$.val = $1.val + $3.val;
+													$$.type = "int";
+												} else if ($1.type == "matrix" && $3.type == "matrix") {
+													if ($1.matrix.get_rows() != $3.matrix.get_rows() || $1.matrix.get_cols() != $3.matrix.get_cols()) {
+														printError(ArgumentSizeMismatch, "+", $1.matrix.get_cols(),
+														$3.matrix.get_rows());
+														exit(1);
+													}
+													$$.type = "matrix";
+													$$.matrix = $1.matrix + $3.matrix; 
+												} else {
+													if ($1.type == "int") {
+														printError(ArgumentTypeMismatch, "+", TypeInt, TypeMatrix);
+														exit(1);
+													} else {
+														printError(ArgumentTypeMismatch, "+", TypeMatrix, TypeInt);
+														exit(1);
+													}
+												}
+												$$.constVar = $1.constVar && $3.constVar;
+											}	
+			| Exp MINUS Exp					{
+												if ($1.type == "int" && $3.type == "int") {
+													$$.val = $1.val - $3.val;
+													$$.type = "int";
+												} else if ($1.type == "matrix" && $3.type == "matrix") {
+													if ($1.matrix.get_rows() != $3.matrix.get_rows() || $1.matrix.get_cols() != $3.matrix.get_cols()) {
+														printError(ArgumentSizeMismatch, "-", $1.matrix.get_cols(),
+														$3.matrix.get_rows());
+														exit(1);
+													}
+													$$.type = "matrix";
+													$$.matrix = $1.matrix - $3.matrix; 
+												} else {
+													if ($1.type == "int") {
+														printError(ArgumentTypeMismatch, "-", TypeInt, TypeMatrix);
+														exit(1);
+													} else {
+														printError(ArgumentTypeMismatch, "-", TypeMatrix, TypeInt);
+														exit(1);
+													}
+												}
+												$$.constVar = $1.constVar && $3.constVar;
+											}	
+			| MINUS Exp						{
+												if ($2.type == "int") {
+													$$.type = $2.type;
+													$$.val = (-1) * $2.val;
+												} else {
+													$$.type = $2.type;
+													$$.matrix = $2.matrix*(-1);
+												}
+												$$.constVar = $2.constVar;
+											}	
+			| Mat 							{
+												$$.type = $1.type;
+												$$.matrix = $1.matrix;
+												$$.constVar = $1.constVar;
+											}
+			| NUM							{
+												$$.type = $1.type;
+												$$.val = $1.val;
+												$$.constVar = $1.constVar;
+											}
+			| ID                            {
+												if (!table.isVarDefined($1.id)) {
+													printError(UndefinedVariable, $1.id);
+													exit(1);
+												}
+												$$.id = $1.id;
+												$$.type = table.getVarType($1.id);
+												if ($$.type == "int") {
+													$$.val = table.getVarVal($1.id);
+												} else {
+													$$.matrix = table.getVarMatrix($1.id);
+												}
+												$$.constVar = $1.constVar;
+											}
+			| LP Exp RP						{
+												$$.type = $2.type;
+												if ($2.type == "int") {
+													$$.val = $2.val;
+												} else {
+													$$.matrix = $2.matrix;
+												}
+												$$.constVar = $2.constVar;
+											}
+			| ID LB Exp CS Exp RB			{
+												if (!table.isVarDefined($1.id)) {
+													printError(UndefinedVariable, $1.id);
+													exit(1);
+												}
+												if ($3.type != "int" || $5.type != "int") {
+													printError(ScalarExpected);
+													exit(1);
+												}
+												if (!($3.constVar) || !($5.constVar)) {
+													printError(ConstantExpressionExpected);
+													exit(1);
+												}
+												if ($3.val >= table.getVarMatrix($1.id).get_rows() ||
+													$3.val < 0) {
+													printError(IndexOutOfBounds,$1.id,$3.val);
+													exit(1);
+												}
+												if ($5.val >= table.getVarMatrix($1.id).get_cols() ||
+													$5.val < 0) {
+													printError(IndexOutOfBounds,$1.id,$5.val);
+													exit(1);
+												}
+												if (table.getVarType($1.id) == "int") {
+													printError(MatrixExpected);
+													exit(1);
+												}
+												$$.type = "int";
+												QSMatrix<int> tmpMatrix = table.getVarMatrix($1.id);
+												$$.val = tmpMatrix($3.val,$5.val);
+												$$.constVar = false;
+											}
+			
+
+First 		: 	Nirvana				{
+										vector_size = vectorList.size();
+										list<YYSTYPE> tmp = vectorList;
+										$$.constVar = $1.constVar;
+										matrixList.push_back(tmp);
+										vectorList.clear();
+									}
+
+Mat 	: 	LB Nirvana RB			{	
+										QSMatrix<int> mat(1, vectorList.size(), 0);
+										int j = 0;
+										for (std::list<YYSTYPE>::reverse_iterator rit=vectorList.rbegin(); rit!=vectorList.rend(); ++rit) {
+											YYSTYPE tmp = *rit;
+											mat(0,j) = tmp.val;
+											++j;
+										}
+										$$.type = "matrix";
+										$$.matrix = mat;
+										$$.constVar = $3.constVar;													
+										vectorList.clear();
+									}
+			| LB First Pixies RB	{
+										QSMatrix<int> mat(matrixList.size(), vector_size, 0);
+										int i = 0;
+										for (std::list<list <YYSTYPE> >::iterator it=matrixList.begin(); it!=matrixList.end(); ++it) {
+											list<YYSTYPE> tmp_vec = *it;
+											int j = 0;
+											for (std::list<YYSTYPE>::reverse_iterator rit_a=tmp_vec.rbegin(); rit_a!=tmp_vec.rend(); ++rit_a) {
+												YYSTYPE tmp_num = *rit_a;
+												mat(i,j) = tmp_num.val;
+												++j;
+											}
+											++i;
+										}
+										$$.type = "matrix";
+										$$.matrix = mat;
+										$$.constVar = $2.constVar && $3.constVar;
+										matrixList.clear();		
+									}
+			| Mat CONCAT Mat 							{
+															if ($1.matrix.get_rows() != $3.matrix.get_rows()) {
+																printError(ArgumentSizeMismatch, "::", $1.matrix.get_rows(),$3.matrix.get_rows());
+																exit(1);
+															}
+															$$.type = $1.type;
+															$$.matrix = $1.matrix.concat($3.matrix);
+															$$.constVar = $1.constVar && $3.constVar;
+														}
+			| ID CONCAT Mat 							{
+															if (!table.isVarDefined($1.id)) {
+																printError(UndefinedVariable, $1.id);
+																exit(1);
+															}
+															if (table.getVarType($1.id) == "int") {
+																printError(ArgumentTypeMismatch, "::", TypeInt, TypeMatrix);
+																exit(1);
+															}
+															if ((table.getVarMatrix($1.id)).get_rows() != 
+																$3.matrix.get_rows()) {
+																printError(ArgumentSizeMismatch, "::", (table.getVarMatrix($1.id)).get_rows(),$3.matrix.get_rows());
+																exit(1);
+															}
+															$$.type = $3.type;
+															$$.matrix = (table.getVarMatrix($1.id)).concat($3.matrix);
+															$$.constVar = false;
+														}
+			| Mat CONCAT ID %prec CONCAT 				{
+															if (!table.isVarDefined($3.id)) {
+																printError(UndefinedVariable, $3.id);
+																exit(1);
+															}
+															if (table.getVarType($3.id) == "int") {
+																printError(ArgumentTypeMismatch, "::", TypeMatrix, TypeInt);
+																exit(1);
+															}
+															if (($1.matrix.get_rows() != 
+																(table.getVarMatrix($3.id)).get_rows())) {
+																	printError(ArgumentSizeMismatch, "::", $1.matrix.get_rows(),(table.getVarMatrix($3.id)).get_rows());
+																	exit(1);
+															}
+															$$.type = $1.type;
+															$$.matrix = $1.matrix.concat(table.getVarMatrix($3.id));
+															$$.constVar = false;
+														}
+			| ID CONCAT ID %prec CONCAT					{
+															if (!table.isVarDefined($1.id)) {
+																printError(UndefinedVariable, $1.id);
+																exit(1);
+															}
+															if (table.getVarType($1.id) == "int") {
+																printError(ArgumentTypeMismatch, "::", TypeInt, TypeMatrix);
+																exit(1);
+															}
+															if (table.getVarType($3.id) == "int") {
+																printError(ArgumentTypeMismatch, "::", TypeMatrix, TypeInt);
+																exit(1);
+															}
+															if ((table.getVarMatrix($1.id)).get_rows() != 
+																(table.getVarMatrix($3.id)).get_rows()) {
+																	printError(ArgumentSizeMismatch, "::", (table.getVarMatrix($1.id)).get_rows(),(table.getVarMatrix($3.id)).get_rows());
+																	exit(1);
+															}
+															$$.type = table.getVarType($1.id);
+															$$.matrix = (table.getVarMatrix($1.id)).concat(table.getVarMatrix($3.id));
+															$$.constVar = false;
+														}
+			| Mat ITERATION LP Exp RP %prec ITERATION	{
+															if ($4.type != "int") {
+																printError(ScalarExpected);
+																exit(1);
+															}
+															if ($4.val <= 0) {
+																printError(PositiveNumberExpected);
+																exit(1);
+															}
+															if (($1.matrix).get_rows() != ($1.matrix).get_cols()) {
+																printError(ArgumentSizeMismatch, "^", $1.matrix.get_rows(), $1.matrix.get_cols());
+																exit(1);
+															}
+															$$.type = $1.type;
+															$$.matrix = ($1.matrix).power($4.val);
+															$$.constVar = $1.constVar;
+														}
+			| ID ITERATION LP Exp RP %prec ITERATION	{
+															if (!table.isVarDefined($1.id)) {
+																printError(UndefinedVariable, $1.id);
+																exit(1);
+															}
+															if (table.getVarType($1.id) == "int") {
+																printError(MatrixExpected);
+															}
+															if ($4.type != "int") {
+																printError(ScalarExpected);
+																exit(1);
+															}
+															if ($4.val <= 0) {
+																printError(PositiveNumberExpected);
+																exit(1);
+															}
+															if ((table.getVarMatrix($1.id)).get_rows() != 
+																(table.getVarMatrix($1.id)).get_cols()) {
+																printError(ArgumentSizeMismatch, "^", (table.getVarMatrix($1.id)).get_rows(), (table.getVarMatrix($1.id)).get_cols());
+																exit(1);
+															}
+															$$.type = "matrix";
+															$$.matrix = (table.getVarMatrix($1.id)).power($4.val);
+															$$.constVar = false;
+														}
+			| TRANSPOSE LP Mat RP %prec TRANSPOSE		{
+															$$.type = $3.type;
+															$$.matrix = ($3.matrix).transpose();
+															$$.constVar = false;
+														}
+			| TRANSPOSE LP ID RP %prec TRANSPOSE 		{
+															if (!table.isVarDefined($3.id)) {
+																printError(UndefinedVariable, $3.id);
+																exit(1);
+															}
+															if (table.getVarType($3.id) == "int") {
+																printError(MatrixExpected);
+															}
+															$$.type = table.getVarType($3.id);
+															$$.matrix = (table.getVarMatrix($3.id)).transpose();
+															$$.constVar = false;
+														}
+
+BeforeP:	Nirvana 						{
+												if (vectorList.size() != vector_size) {
+													printError(MatrixSemanticError);
+													exit(1);
+												}
+												list<YYSTYPE> tmp = vectorList;
+												$$.constVar = $1.constVar;
+												matrixList.push_back(tmp);
+												vectorList.clear();
+											}
+
+Pixies:		SC Nirvana						{
+												if (vectorList.size() != vector_size) {
+													printError(MatrixSemanticError);
+													exit(1);
+												}
+												list<YYSTYPE> tmp = vectorList;
+												$$.constVar = $2.constVar;
+												matrixList.push_back(tmp);
+												vectorList.clear();
+											}
+			| SC BeforeP Pixies				{
+												$$.constVar = $2.constVar && $3.constVar;
+											}
+					
+Nirvana : 	Exp 							{
+												if ($1.type == "matrix") {
+													printError(ScalarExpected);
+													exit(1);
+												}
+												$$.constVar = $1.constVar;
+												vectorList.push_back($1);
+											}
+			| Exp CS Nirvana				{
+												if ($1.type == "matrix") {
+													printError(ScalarExpected);
+													exit(1);
+												}
+												$$.constVar = $1.constVar && $3.constVar;
+												vectorList.push_back($1);
+											}
+			
+
+%%
+
+void yyerror(string m) {
+	printError(SyntaxError);
+}
+
+
+int main() {
+	return yyparse();
+}
+
+

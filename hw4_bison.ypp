@@ -1,0 +1,26 @@
+%{
+	#include "hw4_bison.hpp"
+	#include "output.hpp"
+	//#include "SymTable.h"
+	
+	using namespace std;
+
+	extern int yylex();
+	extern int yylineno;
+	
+	//list<YYSTYPE> variableList;
+	//list<YYSTYPE> vectorList;
+	//list<list <YYSTYPE> > matrixList;
+	//int vector_size;
+	//SymTable table;
+	//void yyerror(string m);
+%}
+
+
+%token LP RP LC RC SC ASSIGN CELSIUS FAHRENHEIT KELVIN TYPE PRINT INPUT \
+		TRUE FALSE BOOL 
+%left PLUS MINUS
+%left MUL DIV
+%left CONCAT
+%left TRANSPOSE
+%right ITERATION

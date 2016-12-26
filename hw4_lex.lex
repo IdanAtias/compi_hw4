@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <output.hpp>
 void handleLexError(int linenum);
- 
+s
 %}
 
 %option yylineno
@@ -25,7 +25,8 @@ string			(\"[^"]*\")
 num			([1-9][0-9]*|0)
 nlAndTab		([\t\n\r])
 cpp_comment		("//"[^\n]*\n)
-ignore			({nlAndTab}|{cpp_comment})
+whitespace		([ ])
+ignore			({nlAndTab}|{cpp_comment}|{whitespace})
 
 %%
 
@@ -39,7 +40,6 @@ ignore			({nlAndTab}|{cpp_comment})
 [-]			return MINUS;
 [*] 			return MULT;
 [/]			return DIV;
-{rel_op}		return REL_OP;
 and			return AND;
 or			return OR;
 C			return CELSIUS;
@@ -48,23 +48,21 @@ K			return KELVIN;
 int			return TYPE;
 print			return PRINT;
 input 			return INPUT;
+true			return TRUE;
+false			return FALSE;
+if			return IF;
+else			return ELSE;
+while			return WHILE;
+break			return BREAK;
+not			return NOT;
+bool			return BOOL;
+switch			return SWITCH;
+case 			return CASE;
+
+{num}			return NUM;
+{rel_op}		return REL_OP;
 {id}			return ID;
 {string}		return STRING;
-
-# The rules below (with the #) don't work. need to check why...
-
-#true			return TRUE;
-#false			return FALSE;
-#if			return IF;
-#else			return ELSE;
-#while			return WHILE;
-#break			return BREAK;
-#not			return NOT;
-#bool			return BOOL;
-#num			return NUM;
-#switch			return SWITCH;
-#case 			return CASE;
-
 
 {ignore}		;
 .			{handleLexError(yylineno);}
@@ -77,4 +75,3 @@ void handleLexError(int linenum)
 	errorLex(linenum);
 	exit(1);
 }
-

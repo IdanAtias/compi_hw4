@@ -19,7 +19,8 @@ s
 %option yylineno
 %option noyywrap
 
-rel_op			(<=|>=|==|!=|>|<)
+rel_op			(<=|>=|>|<)
+eq_op			(==|!=)
 id			([a-zA-Z_]+)
 string			(\"[^"]*\")
 num			([1-9][0-9]*|0)
@@ -45,7 +46,7 @@ or			return OR;
 C			return CELSIUS;
 F			return FAHRENHEIT;
 K			return KELVIN;
-int			return TYPE;
+int			return INT;
 print			return PRINT;
 input 			return INPUT;
 true			return TRUE;
@@ -61,6 +62,7 @@ case 			return CASE;
 
 {num}			return NUM;
 {rel_op}		return REL_OP;
+{eq_op}			return EQ_OP;
 {id}			return ID;
 {string}		return STRING;
 

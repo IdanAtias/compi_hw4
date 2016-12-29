@@ -5,7 +5,7 @@
 	
 	using namespace std;
 
-	extern int yylex();
+	//extern int yylex();
 	extern int yylineno;
 	
 	//list<YYSTYPE> variableList;
@@ -17,10 +17,74 @@
 %}
 
 
-%token LP RP LC RC SC ASSIGN CELSIUS FAHRENHEIT KELVIN TYPE PRINT INPUT \
-		TRUE FALSE BOOL 
+%token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE		
+
+%right ASSIGN
+%left OR
+%left AND
+%left EQ_OP
+%left REL_OP
 %left PLUS MINUS
-%left MUL DIV
-%left CONCAT
-%left TRANSPOSE
-%right ITERATION
+%left MULT DIV
+%right NOT
+
+%%   
+stmts	:  	stmt aux
+aux		: 	stmt aux
+		
+stmt	: 	LC stmts RC		
+			| Type ID SC
+			| ID ASSIGN Exp SC
+			| PRINT ID SC
+			| PRINT STRING SC
+			| INPUT ID SC
+			| select-stmt
+			//~ | WHILE LP Exp RP stmt
+			//~ | BREAK SC
+			//~ | SWITCH LP Exp RP LC CasesList RC
+
+stmt-with-else	: stmt-with-else	| IF LP Exp RP stmt-with-else ELSE stmt-with-else
+
+select-stmt : 	IF LP Exp RP stmt		
+				| IF LP Exp RP stmt-with-else ELSE stmt
+										
+//select-stmt-with-else : IF LP Exp RP stmt-with-else ELSE stmt-with-else
+
+
+						
+
+			
+//~ CasesList : CaseStat CasesList
+			//~ | CaseStat
+			
+//~ CaseStat  : CASE NUM TempType:stmt BREAK SC
+
+TempType  : CELSIUS
+			| FAHRENHEIT
+			| KELVIN
+			
+Type	  : TempType
+			| INT
+			| BOOL
+			
+Exp		  : LP Exp RP
+			| Exp PLUS Exp
+			| Exp MINUS Exp
+			| Exp MULT Exp
+			| Exp DIV Exp
+			| ID
+			| NUM
+			| NUM TempType
+			| TRUE
+			| FALSE
+			| NOT Exp
+			| Exp OR Exp
+			| Exp AND Exp
+			| Exp REL_OP Exp
+			
+
+%%
+
+int main() {
+	return yyparse();
+}

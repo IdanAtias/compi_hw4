@@ -36,6 +36,7 @@ ignore			({nlAndTab}|{cpp_comment}|{whitespace})
 \{			return LC;
 \}			return RC;
 \;			return SC;
+\:			return COLON;
 =			return ASSIGN;
 [+]			return PLUS;
 [-]			return MINUS;

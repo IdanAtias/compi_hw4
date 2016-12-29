@@ -17,8 +17,10 @@
 %}
 
 
-%token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE		
+%token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE COLON	
 
+%nonassoc IFX
+%nonassoc ELSE
 %right ASSIGN
 %left OR
 %left AND
@@ -29,35 +31,27 @@
 %right NOT
 
 %%   
+
+
 stmts	:  	stmt aux
 aux		: 	stmt aux
-		
+			|
 stmt	: 	LC stmts RC		
 			| Type ID SC
 			| ID ASSIGN Exp SC
 			| PRINT ID SC
 			| PRINT STRING SC
 			| INPUT ID SC
-			| select-stmt
-			//~ | WHILE LP Exp RP stmt
-			//~ | BREAK SC
-			//~ | SWITCH LP Exp RP LC CasesList RC
-
-stmt-with-else	: stmt-with-else	| IF LP Exp RP stmt-with-else ELSE stmt-with-else
-
-select-stmt : 	IF LP Exp RP stmt		
-				| IF LP Exp RP stmt-with-else ELSE stmt
-										
-//select-stmt-with-else : IF LP Exp RP stmt-with-else ELSE stmt-with-else
-
-
-						
-
+			| IF LP Exp RP stmt %prec IFX
+			| IF LP Exp RP stmt ELSE stmt 
+			| WHILE LP Exp RP stmt
+			| BREAK SC
+			| SWITCH LP Exp RP LC CasesList RC
+		
+CasesList : CaseStat CasesList
+			| CaseStat
 			
-//~ CasesList : CaseStat CasesList
-			//~ | CaseStat
-			
-//~ CaseStat  : CASE NUM TempType:stmt BREAK SC
+CaseStat  : CASE NUM TempType COLON stmt BREAK SC
 
 TempType  : CELSIUS
 			| FAHRENHEIT
@@ -81,6 +75,7 @@ Exp		  : LP Exp RP
 			| Exp OR Exp
 			| Exp AND Exp
 			| Exp REL_OP Exp
+			| Exp EQ_OP Exp
 			
 
 %%

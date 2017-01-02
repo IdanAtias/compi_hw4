@@ -1,5 +1,5 @@
 /*
- * hw4_lex.c
+ * hw4.lex
  *
  *  Created on: Dec 24, 2016
  *      Author: idan
@@ -11,9 +11,10 @@
 
 /* Declarations section */
 #include <stdio.h>
-#include <output.hpp>
+#include "hw4.tab.hpp"
+#include "output.hpp"
 void handleLexError(int linenum);
-s
+
 %}
 
 %option yylineno
@@ -75,6 +76,6 @@ case 			return CASE;
 
 void handleLexError(int linenum) 
 {
-	errorLex(linenum);
+	output::errorLex(linenum);
 	exit(1);
 }

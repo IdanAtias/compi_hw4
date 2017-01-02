@@ -1,19 +1,22 @@
 %{
-	#include "hw4_bison.hpp"
+	//#include "hw4_bison.hpp"
 	#include "output.hpp"
 	//#include "SymTable.h"
 	
 	using namespace std;
+	using namespace output;
 
-	//extern int yylex();
+	extern int yylex();
 	extern int yylineno;
 	
+	void yyerror(const char*);
+
 	//list<YYSTYPE> variableList;
 	//list<YYSTYPE> vectorList;
 	//list<list <YYSTYPE> > matrixList;
 	//int vector_size;
 	//SymTable table;
-	//void yyerror(string m);
+	
 %}
 
 
@@ -79,6 +82,11 @@ Exp		  : LP Exp RP
 			
 
 %%
+
+void yyerror(const char*){
+	errorSyn(yylineno);
+	exit(1);
+}
 
 int main() {
 	return yyparse();

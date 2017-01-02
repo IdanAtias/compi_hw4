@@ -14,6 +14,7 @@
 #include "hw4.tab.hpp"
 #include "output.hpp"
 void handleLexError(int linenum);
+int handleToken(int token);
 
 %}
 
@@ -32,48 +33,51 @@ ignore			({nlAndTab}|{cpp_comment}|{whitespace})
 
 %%
 
-\(			return LP;
-\)			return RP;
-\{			return LC;
-\}			return RC;
-\;			return SC;
-\:			return COLON;
-=			return ASSIGN;
-[+]			return PLUS;
-[-]			return MINUS;
-[*] 			return MULT;
-[/]			return DIV;
-and			return AND;
-or			return OR;
-C			return CELSIUS;
-F			return FAHRENHEIT;
-K			return KELVIN;
-int			return INT;
-print			return PRINT;
-input 			return INPUT;
-true			return TRUE;
-false			return FALSE;
-if			return IF;
-else			return ELSE;
-while			return WHILE;
-break			return BREAK;
-not			return NOT;
-bool			return BOOL;
-switch			return SWITCH;
-case 			return CASE;
+\(			handleToken(LP);
+\)			handleToken(RP);
+\{			handleToken(LC);
+\}			handleToken(RC);
+\;			handleToken(SC);
+\:			handleToken(COLON);
+=			handleToken(ASSIGN);
+[+]			handleToken(PLUS);
+[-]			handleToken(MINUS);
+[*] 			handleToken(MULT);
+[/]			handleToken(DIV);
+and			handleToken(AND);
+or			handleToken(OR);
+C			handleToken(CELSIUS);
+F			handleToken(FAHRENHEIT);
+K			handleToken(KELVIN);
+int			handleToken(INT);
+print			handleToken(PRINT);
+input 			handleToken(INPUT);
+true			handleToken(TRUE);
+false			handleToken(FALSE);
+if			handleToken(IF);
+else			handleToken(ELSE);
+while			handleToken(WHILE);
+break			handleToken(BREAK);
+not			handleToken(NOT);
+bool			handleToken(BOOL);
+switch			handleToken(SWITCH);
+case 			handleToken(CASE);
 
-{num}			return NUM;
-{rel_op}		return REL_OP;
-{eq_op}			return EQ_OP;
-{id}			return ID;
-{string}		return STRING;
+{num}			handleToken(NUM);
+{rel_op}		handleToken(REL_OP);
+{eq_op}			handleToken(EQ_OP);
+{id}			handleToken(ID);
+{string}		handleToken(STRING);
 
 {ignore}		;
 .			{handleLexError(yylineno);}
 
 %%
 
-
+int handleToken(int token){
+	printf("%d %s \n" , yylineno, yytext);
+	return token;
+}
 void handleLexError(int linenum) 
 {
 	output::errorLex(linenum);

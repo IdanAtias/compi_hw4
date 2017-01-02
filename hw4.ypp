@@ -2,12 +2,14 @@
 	//#include "hw4_bison.hpp"
 	#include "output.hpp"
 	//#include "SymTable.h"
+	#include <iostream>
 	
-	using namespace std;
+	//~ using namespace std;
 	using namespace output;
 
 	extern int yylex();
 	extern int yylineno;
+	extern const char* yytext;
 	
 	void yyerror(const char*);
 
@@ -20,7 +22,7 @@
 %}
 
 
-%token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE COLON	
+%token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE COLON
 
 %nonassoc IFX
 %nonassoc ELSE
@@ -34,7 +36,6 @@
 %right NOT
 
 %%   
-
 
 stmts	:  	stmt aux
 aux		: 	stmt aux
@@ -79,7 +80,7 @@ Exp		  : LP Exp RP
 			| Exp AND Exp
 			| Exp REL_OP Exp
 			| Exp EQ_OP Exp
-			
+
 
 %%
 

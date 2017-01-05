@@ -6,8 +6,7 @@
 typedef struct {
 	std::string type;
 	std::string id;
-	int intVal;
-	bool boolVal;
+	int val;
 } STYPE;
 
 #define YYSTYPE STYPE

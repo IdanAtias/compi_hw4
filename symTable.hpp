@@ -1,5 +1,5 @@
-#ifndef __SymTable__
-#define __SymTable__
+#ifndef __symTable__
+#define __symTable__
 
 #include <map>
 #include <stdio.h>

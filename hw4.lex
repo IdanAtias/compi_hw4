@@ -11,6 +11,7 @@
 
 /* Declarations section */
 #include <stdio.h>
+#include "hw4.hpp"
 #include "hw4.tab.hpp"
 #include "output.hpp"
 void handleLexError(int linenum);
@@ -66,12 +67,12 @@ print			handleToken(PRINT);
 input 			handleToken(INPUT);
 true			{
 					yylval.type = "bool";
-					yylval.boolVal = 1;
+					yylval.val = 1;
 					return TRUE;	
 				};
 false			{
 					yylval.type = "bool";
-					yylval.boolVal = 0;
+					yylval.val = 0;
 					return FALSE;	
 				};
 if				handleToken(IF);
@@ -88,7 +89,7 @@ case 			handleToken(CASE);
 
 {num}			{
 					yylval.type = "int";
-					yylval.intVal = atoi(yytext);
+					yylval.val = atoi(yytext);
 					return NUM;
 				}
 {rel_op}		handleToken(REL_OP);

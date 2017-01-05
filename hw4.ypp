@@ -1,10 +1,12 @@
 %{
-	//#include "hw4_bison.hpp"
+	#include "hw4.hpp"
 	#include "output.hpp"
-	//#include "SymTable.h"
+	#include "symTable.h"
 	#include <iostream>
+	#include <vector>
+	#include <stack>
 	
-	//~ using namespace std;
+	using namespace std;
 	using namespace output;
 
 	extern int yylex();
@@ -13,6 +15,15 @@
 	
 	void yyerror(const char*);
 
+
+	vector<SymTable> tableStack;
+	stack<int> offsetStack;
+
+	bool condScopeFlag = false;
+
+	#define OFFSET_SIZE 1
+
+
 	//list<YYSTYPE> variableList;
 	//list<YYSTYPE> vectorList;
 	//list<list <YYSTYPE> > matrixList;
@@ -20,6 +31,8 @@
 	//SymTable table;
 	
 %}
+
+
 
 
 %token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE COLON
@@ -37,12 +50,55 @@
 
 %%   
 
+Prog	:	InitMarker stmts
+				
+InitMarker	:	{
+					tableStack.push_back(SymTable());
+					offsetStack.push(0);
+				}
+
+EndScopeMarker	:	{
+						output::endScope();
+						tableStack.back().printTable();
+						tableStack.pop_back();
+						offsetStack.pop();
+					}				
+					
+StartScopeMarker	:	{
+							tableStack.push_back(SymTable());
+							offsetStack.push(offsetStack.top());
+						}
+						
 stmts	:  	stmt aux
 aux		: 	stmt aux
 			|
-stmt	: 	LC stmts RC		
+stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC		
 			| Type ID SC
+				{
+					$2.type = $1.type;
+					if (condScopeFlag){
+						tableStack.push_back(SymTable());
+						offsetStack.push(offsetStack.top());
+					}
+					if (tableStack.back().isVarDefined($2.id)) {
+						output::errorDef(yylineno, $2.id);
+						exit(1);
+					}
+					int newOffset = offsetStack.top() + OFFSET_SIZE;
+					tableStack.back().insertVar($2.id, $2.type, newOffset);
+					offsetStack.pop();
+					offsetStack.push(newOffset);
+					if (condScopeFlag) {
+						output::endScope();
+						tableStack.back().printTable();
+						tableStack.pop_back();
+						offsetStack.pop();
+					}			
+				}
+				
 			| ID ASSIGN Exp SC
+				{
+					if ($1
 			| PRINT ID SC
 			| PRINT STRING SC
 			| INPUT ID SC
@@ -50,12 +106,12 @@ stmt	: 	LC stmts RC
 			| IF LP Exp RP stmt ELSE stmt 
 			| WHILE LP Exp RP stmt
 			| BREAK SC
-			| SWITCH LP Exp RP LC CasesList RC
+			| SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC
 		
 CasesList : CaseStat CasesList
 			| CaseStat
 			
-CaseStat  : CASE NUM TempType COLON stmt BREAK SC
+CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker
 
 TempType  : CELSIUS
 			| FAHRENHEIT
@@ -89,6 +145,11 @@ void yyerror(const char*){
 	exit(1);
 }
 
+bool checkAssignmentTyps(string t1, string t2) {
+	if (t2 == string("bool") && t1 != string("bool")) return false;
+	if (t2 == "
+	
+}
 int main() {
 	return yyparse();
 }

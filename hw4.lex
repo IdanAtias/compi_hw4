@@ -23,9 +23,9 @@ int handleToken(int token);
 
 rel_op			(<=|>=|>|<)
 eq_op			(==|!=)
-id			([a-zA-Z_]+)
+id				([a-zA-Z_]+)
 string			(\"[^"]*\")
-num			([1-9][0-9]*|0)
+num				([1-9][0-9]*|0)
 nlAndTab		([\t\n\r])
 cpp_comment		("//"[^\n]*\n)
 whitespace		([ ])
@@ -42,35 +42,65 @@ ignore			({nlAndTab}|{cpp_comment}|{whitespace})
 =			handleToken(ASSIGN);
 [+]			handleToken(PLUS);
 [-]			handleToken(MINUS);
-[*] 			handleToken(MULT);
+[*] 		handleToken(MULT);
 [/]			handleToken(DIV);
 and			handleToken(AND);
 or			handleToken(OR);
-C			handleToken(CELSIUS);
-F			handleToken(FAHRENHEIT);
-K			handleToken(KELVIN);
-int			handleToken(INT);
+C			{
+				yylval.type = "cel";
+				return CELSIUS;
+			};
+F			{
+				yylval.type = "fah";
+				return FAHRENHEIT;
+			};
+K			{
+				yylval.type = "kel";
+				return KELVIN;	
+			};
+int			{
+				yylval.type = "int";
+				return INT;	
+			};
 print			handleToken(PRINT);
 input 			handleToken(INPUT);
-true			handleToken(TRUE);
-false			handleToken(FALSE);
-if			handleToken(IF);
+true			{
+					yylval.type = "bool";
+					yylval.boolVal = 1;
+					return TRUE;	
+				};
+false			{
+					yylval.type = "bool";
+					yylval.boolVal = 0;
+					return FALSE;	
+				};
+if				handleToken(IF);
 else			handleToken(ELSE);
 while			handleToken(WHILE);
 break			handleToken(BREAK);
-not			handleToken(NOT);
-bool			handleToken(BOOL);
+not				handleToken(NOT);
+bool			{
+					yylval.type = "bool";
+					return BOOL;
+				};
 switch			handleToken(SWITCH);
 case 			handleToken(CASE);
 
-{num}			handleToken(NUM);
+{num}			{
+					yylval.type = "int";
+					yylval.intVal = atoi(yytext);
+					return NUM;
+				}
 {rel_op}		handleToken(REL_OP);
 {eq_op}			handleToken(EQ_OP);
-{id}			handleToken(ID);
+{id}			{
+					yylval.id = yytext;
+					return ID;
+				}
 {string}		handleToken(STRING);
 
 {ignore}		;
-.			{handleLexError(yylineno);}
+.				{handleLexError(yylineno);}
 
 %%
 

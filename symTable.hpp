@@ -1,12 +1,11 @@
 #ifndef __SymTable__
 #define __SymTable__
 
-#include <set>
+#include <map>
+#include <stdio.h>
+#include <iostream>
 #include <string>
 using namespace std;
-
-/////////Idan- I used c++11
-//////// TODO- change file name to "SymTable.hpp".
 
 struct TableLine {
 	string name;

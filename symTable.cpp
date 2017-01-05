@@ -7,8 +7,8 @@ void SymTable::insertVar(string id, string type, int offset) {
 	line.name = id;
 	line.type = type;
 	line.offset = offset;
-		
 	table.insert(std::pair<string, TableLine>(id, line));
+	//~ this->printTable();
 }
 
 bool SymTable::isVarDefined(string id) const {
@@ -16,7 +16,6 @@ bool SymTable::isVarDefined(string id) const {
 }
 
 void SymTable::printTable() const {
-	cout << "in print table" << endl;
 	for (map<string, TableLine>::const_iterator iter = table.begin() ; iter != table.end() ; ++iter) {
 		output::printVar((iter->first).c_str(), iter->second.offset, (iter->second.type).c_str());
 	}

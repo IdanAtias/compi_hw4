@@ -30,7 +30,6 @@
 
 
 
-
 %token LP RP LC RC SC CELSIUS FAHRENHEIT KELVIN INT PRINT INPUT ID STRING TRUE FALSE BOOL IF ELSE WHILE BREAK NUM SWITCH CASE COLON
 
 %nonassoc IFX
@@ -38,7 +37,7 @@
 %right ASSIGN
 %left OR
 %left AND
-%left EQ_OP
+//~ %left EQ_OP
 %left REL_OP
 %left PLUS MINUS
 %left MULT DIV
@@ -46,12 +45,15 @@
 
 %%   
 
-Prog	:	InitMarker stmts
+Prog	:	InitMarker stmts FinishMarker
 
 stmts	:  	stmt aux { cout << "stmts: stmt aux" << endl;}
 aux		: 	stmt aux { cout << "aux: stmt aux" << endl;}
-			|
-stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC		
+			| { cout << "epsilon" << endl; }
+stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
+				{
+					cout << "LC StartScopeMarker stmts EndScopeMarker RC" << endl;
+				}	
 			| Type ID SC
 				{
 					cout << "Type ID SC" << endl;
@@ -64,8 +66,8 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						errorDef(yylineno, $2.id.c_str());
 						exit(1);
 					}
+					tablesStack.back().insertVar($2.id, $2.type, offsetStack.top());
 					int newOffset = offsetStack.top() + OFFSET_SIZE;
-					tablesStack.back().insertVar($2.id, $2.type, newOffset);
 					offsetStack.pop();
 					offsetStack.push(newOffset);
 					if (condScopeFlag) {
@@ -76,9 +78,38 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						offsetStack.pop();
 					}			
 				}
-				
+			| Type ID ASSIGN Exp SC 
+				{
+					cout << "Type ID ASSIGN Exp SC" << endl;
+					$2.type = $1.type;
+					if (condScopeFlag){
+						tablesStack.push_back(SymTable());
+						offsetStack.push(offsetStack.top());
+					}
+					if (tablesStack.back().isVarDefined($2.id)) {
+						errorDef(yylineno, $2.id.c_str());
+						exit(1);
+					}
+					if (!checkAssignmentTyps($1.type, $4.type)) {
+						errorMismatch(yylineno);
+						exit(1);
+					}
+					$2.val = $4.val;
+					tablesStack.back().insertVar($2.id, $2.type, offsetStack.top());
+					int newOffset = offsetStack.top() + OFFSET_SIZE;
+					offsetStack.pop();
+					offsetStack.push(newOffset);
+					if (condScopeFlag) {
+						condScopeFlag = false;
+						endScope();
+						tablesStack.back().printTable();
+						tablesStack.pop_back();
+						offsetStack.pop();
+					}
+				}
 			| ID ASSIGN Exp SC
 				{
+					cout << "ID ASSIGN Exp SC" << endl;
 					string idType = findVarType($1.id);
 					if (idType == string("")) {
 						errorUndef(yylineno, $1.id.c_str());
@@ -91,8 +122,10 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 					}
 					$1.val = $3.val; 
 				}
+			| PRINT STRING SC { cout << "PRINT STRING SC" << endl; }
 			| PRINT ID SC
 				{
+					cout << "PRINT ID SC" << endl;
 					string idType = findVarType($2.id);
 					if (idType == string("")){
 						errorUndef(yylineno, $2.id.c_str());
@@ -103,9 +136,9 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| PRINT STRING SC
 			| INPUT ID SC
 				{
+					cout << "INPUT ID SC" << endl;
 					string idType = findVarType($2.id);
 					if (idType == string("")){
 						errorUndef(yylineno, $2.id.c_str());
@@ -118,6 +151,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| IF LP Exp RP stmt %prec IFX
 				{
+					cout << "IF LP Exp RP stmt %prec IFX" << endl;
 					if ($3.type != string("bool")){
 						errorMismatch(yylineno);
 						exit(1);
@@ -128,6 +162,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| IF LP Exp RP stmt ELSE stmt 
 				{
+					cout << "IF LP Exp RP stmt ELSE stmt" << endl;
 					if ($3.type != string("bool")){
 						errorMismatch(yylineno);
 						exit(1);
@@ -136,6 +171,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| WHILE LP Exp RP WhileMarker stmt
 				{
+					cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
 					whileCounter--;
 					if ($3.type != string("bool")){
 						errorMismatch(yylineno);
@@ -147,6 +183,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| BREAK SC
 				{
+					cout << "BREAK SC" << endl;
 					if (whileCounter <= 0 ) {
 						errorUnexpectedBreak(yylineno);
 						exit(1);
@@ -154,30 +191,36 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC
 				{
-					
+					cout << "SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC" << endl;
 					if (!isTemperture($3.type)) {
 						errorMismatch(yylineno);
 						exit(1);
 					} 
 				}
 		
-CasesList : CaseStat CasesList
-			| CaseStat
+CasesList : CaseStat CasesList { cout << "CaseStat CasesList " << endl;}
+			| CaseStat { cout << "CaseStat " << endl;}
 			
-CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC M1 EndScopeMarker
+CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker
+				{
+					{ cout << "CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker " << endl;}
+				}
 
 TempType  : CELSIUS
 				{
+					cout << "CELSIUS" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 			| FAHRENHEIT
 				{
+					cout << "FAHRENHEIT" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 			| KELVIN
 				{
+					cout << "KELVIN" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
@@ -198,17 +241,20 @@ Type	  : TempType
 				}
 			| BOOL
 				{
+					cout << "BOOL" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 
 Exp		  : LP Exp RP 
 				{
+					cout << "LP Exp RP" << endl;
 					$$.type = $2.type;
 					$$.val = $2.val;
 				}
 			| Exp PLUS Exp
 				{
+					cout << "Exp PLUS Exp" << endl;
 					if ($1.type == string("int") && $3.type == string("int")) {
 						$$.type = $1.type;
 						$$.val = $1.val + $3.val;
@@ -222,6 +268,7 @@ Exp		  : LP Exp RP
 				}
 			| Exp MINUS Exp
 				{
+					cout << "Exp MINUS Exp" << endl;
 					if ($1.type == string("int") && $3.type == string("int")) {
 						$$.type = $1.type;
 						$$.val = $1.val - $3.val;
@@ -235,6 +282,7 @@ Exp		  : LP Exp RP
 				}
 			| Exp MULT Exp
 				{
+						cout << "Exp MULT Exp" << endl;
 					if ($1.type == string("int") && $3.type == string("int")) {
 						$$.type = $1.type;
 						$$.val = $1.val * $3.val;
@@ -255,6 +303,7 @@ Exp		  : LP Exp RP
 				}
 			| Exp DIV Exp
 				{
+					cout << "Exp DIV Exp" << endl;
 					if ($1.type == string("int") && $3.type == string("int")) {
 						$$.type = $1.type;
 						$$.val = $1.val / $3.val;
@@ -284,6 +333,7 @@ Exp		  : LP Exp RP
 				}
 			| NUM
 				{
+					cout << "NUM" << endl;
 					if ($1.type != string("int")) {
 						errorMismatch(yylineno);
 						exit(1);
@@ -293,6 +343,7 @@ Exp		  : LP Exp RP
 				}
 			| NUM TempType 
 				{
+					cout << "NUM TempType " << endl;
 					if (!(isTemperture($2.type)) ||
 					!($1.type == string("int"))) {
 						errorMismatch(yylineno);
@@ -303,16 +354,19 @@ Exp		  : LP Exp RP
 				}
 			| TRUE
 				{
+					cout << "TRUE" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 			| FALSE
 				{
+					cout << "FALSE" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 			| NOT Exp 
 				{
+					cout << "NOT Exp" << endl;
 					if ($2.type != string("bool")) {
 						errorMismatch(yylineno);
 						exit(1);
@@ -322,6 +376,7 @@ Exp		  : LP Exp RP
 				}
 			| Exp OR Exp
 				{
+					cout << "Exp OR Exp" << endl;
 					if ($1.type != string("bool") || $3.type != string("bool")){
 						errorMismatch(yylineno);
 						exit(1);
@@ -335,6 +390,7 @@ Exp		  : LP Exp RP
 				}
 			| Exp AND Exp
 				{
+					cout << "Exp AND Exp" << endl;
 					if ($1.type != string("bool") || $3.type != string("bool")){
 						errorMismatch(yylineno);
 						exit(1);
@@ -348,45 +404,54 @@ Exp		  : LP Exp RP
 				}
 			| Exp REL_OP Exp 
 				{
+					cout << "Exp REL_OP Exp" << endl;
 					if ($1.type == string("int") && $3.type == string("int")) {
 						$$.type = string("bool");
-						
+						/////handle > / < / <= / >=
 					}					
-					if (isTemperture($1.type) && isTemperture($3.type)) {
-						$$.type = string("bool");
+					else if (isTemperture($1.type) && isTemperture($3.type)) {
+								$$.type = string("bool");
+								/////handle > / < / <= / >=
+					} else {
+						errorMismatch(yylineno);
 						exit(1);
 					}
-					/////handle > / < / <= / >=
-					errorMismatch(yylineno);
-					exit(1);
-				}
-				
-			| Exp EQ_OP Exp
-				{
-					if ($1.type == string("int") && $3.type == string("int")) {
-						$$.type = string("bool");
-						$$.val = ($1.val == $3.val);						
-					}					
-					if (isTemperture($1.type) && isTemperture($3.type)) {
-						$$.type = string("bool");
-				//		$$.val = ($1.val == $3.val);	
-					}
-					errorMismatch(yylineno);
-					exit(1);
-				}
+				}	
+			//~ | Exp EQ_OP Exp
+				//~ {
+					//~ if ($1.type == string("int") && $3.type == string("int")) {
+						//~ $$.type = string("bool");
+						//~ $$.val = ($1.val == $3.val);						
+					//~ }					
+					//~ if (isTemperture($1.type) && isTemperture($3.type)) {
+						//~ $$.type = string("bool");
+						//~ $$.val = ($1.val == $3.val);	
+					//~ }
+					//~ errorMismatch(yylineno);
+					//~ exit(1);
+				//~ }
 				
 InitMarker	:	{
 					cout << "InitMarker" << endl;
 					tablesStack.push_back(SymTable());
 					offsetStack.push(0);
 				}
+FinishMarker : 	{
+					cout << "FinishMarker" << endl;
+					endScope();
+					tablesStack.back().printTable();
+					tablesStack.pop_back();
+					offsetStack.pop();
+				}
 
 WhileMarker	 :	{
+					cout << "WhileMarker" << endl;
 					whileCounter++;
 				}
 			
 
 EndScopeMarker	:	{
+						cout << "EndScopeMarker" << endl;
 						condScopeFlag = false;
 						endScope();
 						tablesStack.back().printTable();
@@ -395,11 +460,12 @@ EndScopeMarker	:	{
 					}				
 					
 StartScopeMarker	:	{
+							cout << "StartScopeMarker" << endl;
 							tablesStack.push_back(SymTable());
 							offsetStack.push(offsetStack.top());
 						}
 						
-M1		: {cout <<"in M1"<<endl;}
+//~ M1		: {cout <<"in M1"<<endl;}
 
 %%
 

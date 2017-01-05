@@ -17,6 +17,7 @@
 	bool isTemperture(string type);
 	bool checkAssignmentTyps(string t1, string t2);
 	string findVarType(string id);
+	void printStype(YYSTYPE yst, string msg);
 
 	vector<SymTable> tablesStack;
 	stack<int> offsetStack;
@@ -46,36 +47,14 @@
 %%   
 
 Prog	:	InitMarker stmts
-				
-InitMarker	:	{
-					tablesStack.push_back(SymTable());
-					offsetStack.push(0);
-				}
 
-WhileMarker	 :	{
-					whileCounter++;
-					}
-			
-
-EndScopeMarker	:	{
-						condScopeFlag = false;
-						endScope();
-						tablesStack.back().printTable();
-						tablesStack.pop_back();
-						offsetStack.pop();
-					}				
-					
-StartScopeMarker	:	{
-							tablesStack.push_back(SymTable());
-							offsetStack.push(offsetStack.top());
-						}
-						
-stmts	:  	stmt aux
-aux		: 	stmt aux
+stmts	:  	stmt aux { cout << "stmts: stmt aux" << endl;}
+aux		: 	stmt aux { cout << "aux: stmt aux" << endl;}
 			|
 stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC		
 			| Type ID SC
 				{
+					cout << "Type ID SC" << endl;
 					$2.type = $1.type;
 					if (condScopeFlag){
 						tablesStack.push_back(SymTable());
@@ -175,6 +154,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC
 				{
+					
 					if (!isTemperture($3.type)) {
 						errorMismatch(yylineno);
 						exit(1);
@@ -184,7 +164,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 CasesList : CaseStat CasesList
 			| CaseStat
 			
-CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker
+CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC M1 EndScopeMarker
 
 TempType  : CELSIUS
 				{
@@ -204,20 +184,24 @@ TempType  : CELSIUS
 			
 Type	  : TempType
 				{
+					cout << "TempType" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
 			| INT
 				{
+					cout << "INT" << endl;
 					$$.type = $1.type;
 					$$.val = $1.val;
+					//~ printStype($1, "INT");
+					//~ printStype($$, "Type");
 				}
 			| BOOL
 				{
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
-			
+
 Exp		  : LP Exp RP 
 				{
 					$$.type = $2.type;
@@ -287,13 +271,15 @@ Exp		  : LP Exp RP
 					exit(1);
 				}
 			| ID
-				{
+				{	
+					cout << "ID" << endl;
 					string varType = findVarType($1.id);
 					if (varType == string("")) {
 						errorUndef(yylineno, $1.id.c_str());
 						exit(1);
 					}
 					$$.type = varType;
+					$$.id = $1.id;
 					$$.val = $1.val;
 				}
 			| NUM
@@ -388,6 +374,32 @@ Exp		  : LP Exp RP
 					errorMismatch(yylineno);
 					exit(1);
 				}
+				
+InitMarker	:	{
+					cout << "InitMarker" << endl;
+					tablesStack.push_back(SymTable());
+					offsetStack.push(0);
+				}
+
+WhileMarker	 :	{
+					whileCounter++;
+				}
+			
+
+EndScopeMarker	:	{
+						condScopeFlag = false;
+						endScope();
+						tablesStack.back().printTable();
+						tablesStack.pop_back();
+						offsetStack.pop();
+					}				
+					
+StartScopeMarker	:	{
+							tablesStack.push_back(SymTable());
+							offsetStack.push(offsetStack.top());
+						}
+						
+M1		: {cout <<"in M1"<<endl;}
 
 %%
 
@@ -415,6 +427,12 @@ bool isTemperture(string type) {
 	return (type == string("fah") || type == string("cel") || type == string("kel"));
 }
 
+void printStype(YYSTYPE yst, string msg){
+	cout << msg + ":" << endl;
+	cout << "type = " + yst.type << endl;
+	cout << "id = " + yst.id << endl;
+	cout << "val = " + yst.val << endl;	
+}
 int main() {
 	return yyparse();
 }

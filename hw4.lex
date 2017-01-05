@@ -100,13 +100,13 @@ case 			handleToken(CASE);
 				}
 {string}		handleToken(STRING);
 
-{ignore}		;
+{ignore}		{;}
 .				{handleLexError(yylineno);}
 
 %%
 
 int handleToken(int token){
-	printf("%d %s \n" , yylineno, yytext);
+	//printf("%d %s \n" ,yylineno, yytext);
 	return token;
 }
 void handleLexError(int linenum) 

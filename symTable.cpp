@@ -16,12 +16,11 @@ bool SymTable::isVarDefined(string id) const {
 }
 
 void SymTable::printTable() const {
-		
+	cout << "in print table" << endl;
 	for (map<string, TableLine>::const_iterator iter = table.begin() ; iter != table.end() ; ++iter) {
 		output::printVar((iter->first).c_str(), iter->second.offset, (iter->second.type).c_str());
 	}
 }
-
 
 string SymTable::getVarType(string id) const {
 

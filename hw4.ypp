@@ -62,7 +62,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}	
 			| Type ID SC
 				{
-					//cout << "Type ID SC" << endl;
+					//~ cout << "Type ID SC" << endl;
 					$2.type = $1.type;
 					if (condScopeFlag){
 						tablesStack.push_back(SymTable());
@@ -76,6 +76,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 					int newOffset = offsetStack.top() + OFFSET_SIZE;
 					offsetStack.pop();
 					offsetStack.push(newOffset);
+					
 					if (condScopeFlag) {
 						condScopeFlag = false;
 						endScope();
@@ -86,7 +87,8 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				}
 			| Type ID ASSIGN Exp SC 
 				{
-					//cout << "Type ID ASSIGN Exp SC" << endl;
+					//~ cout << "Type ID ASSIGN Exp SC" << endl;
+					//~ cout << "cond: "<<condScopeFlag << endl;
 					$2.type = $1.type;
 					if (condScopeFlag){
 						tablesStack.push_back(SymTable());
@@ -157,37 +159,22 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| IF LP Exp RP stmt %prec IFX
+			| IF LP ForceBoolExp RP stmt %prec IFX
 				{
-					//cout << "IF LP Exp RP stmt %prec IFX" << endl;
-					if ($3.type != string("BOOL")){
-						errorMismatch(yylineno);
-						exit(1);
-					}
-					if ($3.val == 1){
-						condScopeFlag = true;
-					}
+					//~ cout << "IF LP Exp RP stmt %prec IFX" << endl;
 				}
-			| IF LP Exp RP stmt ELSE stmt 
+			| IF LP ForceBoolExp RP stmt ELSE SetCondFlagOn stmt 
 				{
-					//cout << "IF LP Exp RP stmt ELSE stmt" << endl;
-					if ($3.type != string("BOOL")){
-						errorMismatch(yylineno);
-						exit(1);
-					}
-					condScopeFlag = 1;	
+					//~ cout << "IF LP Exp RP stmt ELSE stmt" << endl;
+					//~ condScopeFlag = 1;
 				}
-			| WHILE LP Exp RP WhileMarker stmt
+			| WHILE LP ForceBoolExp RP WhileMarker stmt
 				{
 					//cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
-					whileCounter--;
-					if ($3.type != string("BOOL")){
-						errorMismatch(yylineno);
-						exit(1);
-					}
-					if ($3.val == 1){
-						condScopeFlag = true;
-					}
+						whileCounter--;
+					//~ if ($3.val == 1){
+						//~ condScopeFlag = true;
+					//~ }
 				}
 			| BREAK SC
 				{
@@ -197,13 +184,9 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC
+			| SWITCH LP ForceTempExp RP LC StartScopeMarker CasesList EndScopeMarker RC
 				{
 					//cout << "SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC" << endl;
-					if (!isTemperture($3.type)) {
-						errorMismatch(yylineno);
-						exit(1);
-					} 
 				}
 		
 CasesList : CaseStat CasesList { 
@@ -212,8 +195,13 @@ CasesList : CaseStat CasesList {
 			| CaseStat { 
 				//cout << "CaseStat " << endl;
 				}
-			
-CaseStat  : CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker
+				
+SetCondFlagOn : {
+				//cout << "setCondFlag " << endl;
+				condScopeFlag = true;
+				}
+
+CaseStat  : CASE NUM TempType COLON SetCondFlagOn stmt BREAK SC
 				{ 
 					//cout << "CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker " << endl;
 				}
@@ -257,7 +245,25 @@ Type	  : TempType
 					$$.type = $1.type;
 					$$.val = $1.val;
 				}
-
+				
+ForceTempExp	: Exp
+					{
+						if (!isTemperture($1.type)) {
+							errorMismatch(yylineno);
+							exit(1);
+						} 
+						$$ = $1;
+					}
+ForceBoolExp	: 	Exp 
+					{
+						//cout << "ForceBoolExp" << endl;
+						if ($1.type != string("BOOL")){
+							errorMismatch(yylineno);
+							exit(1);
+						}
+						condScopeFlag = true;
+						$$ = $1;
+					}
 Exp		  : LP Exp RP 
 				{
 					//cout << "LP Exp RP" << endl;
@@ -270,13 +276,13 @@ Exp		  : LP Exp RP
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val + $3.val;
-					}
-					if (isTemperture($1.type) && isTemperture($3.type)) {
+					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = $1.type;
 					//	$$.val = $1.val + $3.val;
+					} else {
+						errorMismatch(yylineno);
+						exit(1);
 					}
-					errorMismatch(yylineno);
-					exit(1);
 				}
 			| Exp MINUS Exp
 				{
@@ -284,21 +290,17 @@ Exp		  : LP Exp RP
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val - $3.val;
-					}
-					if (isTemperture($1.type) && isTemperture($3.type)) {
+					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = $1.type;
 					//	$$.val = $1.val - $3.val; //need to convert
+					} else {
+						errorMismatch(yylineno);
+						exit(1);
 					}
-					errorMismatch(yylineno);
-					exit(1);
 				}
 			| Exp MULT Exp
 				{
 						//cout << "Exp MULT Exp" << endl;
-					if ($1.type == string("INT") && $3.type == string("INT")) {
-						$$.type = $1.type;
-						$$.val = $1.val * $3.val;
-					}
 					if ($1.type == string("BOOL") || $3.type == string("BOOL")) {
 						errorMismatch(yylineno);
 						exit(1);
@@ -307,11 +309,15 @@ Exp		  : LP Exp RP
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					YYSTYPE temp = isTemperture($1.type) ? $1 : $3;
-					YYSTYPE num = !isTemperture($1.type) ? $1 : $3;
-					$$.type = temp.type;
-					$$.val = temp.val * num.val;
- 					
+					if ($1.type == string("INT") && $3.type == string("INT")) {
+						$$.type = $1.type;
+						$$.val = $1.val * $3.val;
+					} else /*1 temp & 1 int*/ {
+						YYSTYPE temp = isTemperture($1.type) ? $1 : $3;
+						YYSTYPE num = !isTemperture($1.type) ? $1 : $3;
+						$$.type = temp.type;
+						$$.val = temp.val * num.val;
+					}
 				}
 			| Exp DIV Exp
 				{
@@ -319,17 +325,16 @@ Exp		  : LP Exp RP
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val / $3.val;
-					}
-					if (isTemperture($1.type) && isTemperture($3.type)) {
+					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = string("INT");
 					//	$$.val = $1.type / $3.type;
-					}
-					if (isTemperture($1.type) && $3.type == string("INT")) {
+					} else if(isTemperture($1.type) && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val / $3.val;
+					} else {
+						errorMismatch(yylineno);
+						exit(1);
 					}
-					errorMismatch(yylineno);
-					exit(1);
 				}
 			| ID
 				{	
@@ -473,6 +478,7 @@ EndScopeMarker	:	{
 					
 StartScopeMarker	:	{
 							//cout << "StartScopeMarker" << endl;
+							condScopeFlag = false;
 							tablesStack.push_back(SymTable());
 							offsetStack.push(offsetStack.top());
 						}

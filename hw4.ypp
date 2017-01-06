@@ -139,7 +139,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						errorUndef(yylineno, $2.id.c_str());
 						exit(1);
 					}
-					if (idType == string("bool")){
+					if (idType == string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -152,7 +152,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						errorUndef(yylineno, $2.id.c_str());
 						exit(1);
 					}
-					if (idType == string("bool")){
+					if (idType == string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -160,7 +160,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 			| IF LP Exp RP stmt %prec IFX
 				{
 					//cout << "IF LP Exp RP stmt %prec IFX" << endl;
-					if ($3.type != string("bool")){
+					if ($3.type != string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -171,7 +171,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 			| IF LP Exp RP stmt ELSE stmt 
 				{
 					//cout << "IF LP Exp RP stmt ELSE stmt" << endl;
-					if ($3.type != string("bool")){
+					if ($3.type != string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -181,7 +181,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				{
 					//cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
 					whileCounter--;
-					if ($3.type != string("bool")){
+					if ($3.type != string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -267,7 +267,7 @@ Exp		  : LP Exp RP
 			| Exp PLUS Exp
 				{
 					//cout << "Exp PLUS Exp" << endl;
-					if ($1.type == string("int") && $3.type == string("int")) {
+					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val + $3.val;
 					}
@@ -281,7 +281,7 @@ Exp		  : LP Exp RP
 			| Exp MINUS Exp
 				{
 					//cout << "Exp MINUS Exp" << endl;
-					if ($1.type == string("int") && $3.type == string("int")) {
+					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val - $3.val;
 					}
@@ -295,11 +295,11 @@ Exp		  : LP Exp RP
 			| Exp MULT Exp
 				{
 						//cout << "Exp MULT Exp" << endl;
-					if ($1.type == string("int") && $3.type == string("int")) {
+					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val * $3.val;
 					}
-					if ($1.type == string("bool") || $3.type == string("bool")) {
+					if ($1.type == string("BOOL") || $3.type == string("BOOL")) {
 						errorMismatch(yylineno);
 						exit(1);
 					}					
@@ -316,15 +316,15 @@ Exp		  : LP Exp RP
 			| Exp DIV Exp
 				{
 					//cout << "Exp DIV Exp" << endl;
-					if ($1.type == string("int") && $3.type == string("int")) {
+					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val / $3.val;
 					}
 					if (isTemperture($1.type) && isTemperture($3.type)) {
-						$$.type = string("int");
+						$$.type = string("INT");
 					//	$$.val = $1.type / $3.type;
 					}
-					if (isTemperture($1.type) && $3.type == string("int")) {
+					if (isTemperture($1.type) && $3.type == string("INT")) {
 						$$.type = $1.type;
 						$$.val = $1.val / $3.val;
 					}
@@ -346,7 +346,7 @@ Exp		  : LP Exp RP
 			| NUM
 				{
 					//cout << "NUM" << endl;
-					if ($1.type != string("int")) {
+					if ($1.type != string("INT")) {
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -357,7 +357,7 @@ Exp		  : LP Exp RP
 				{
 					//cout << "NUM TempType " << endl;
 					if (!(isTemperture($2.type)) ||
-					!($1.type == string("int"))) {
+					!($1.type == string("INT"))) {
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -379,17 +379,17 @@ Exp		  : LP Exp RP
 			| NOT Exp 
 				{
 					//cout << "NOT Exp" << endl;
-					if ($2.type != string("bool")) {
+					if ($2.type != string("BOOL")) {
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					$$.type = string("bool");
+					$$.type = string("BOOL");
 					$$.val = !($2.val);
 				}
 			| Exp OR Exp
 				{
 					//cout << "Exp OR Exp" << endl;
-					if ($1.type != string("bool") || $3.type != string("bool")){
+					if ($1.type != string("BOOL") || $3.type != string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -398,12 +398,12 @@ Exp		  : LP Exp RP
 					} else {
 						$$.val = 0;
 					}
-					$$.type = string("bool");
+					$$.type = string("BOOL");
 				}
 			| Exp AND Exp
 				{
 					//cout << "Exp AND Exp" << endl;
-					if ($1.type != string("bool") || $3.type != string("bool")){
+					if ($1.type != string("BOOL") || $3.type != string("BOOL")){
 						errorMismatch(yylineno);
 						exit(1);
 					}
@@ -412,17 +412,17 @@ Exp		  : LP Exp RP
 					} else {
 						$$.val = 1;
 					}
-					$$.type = string("bool");
+					$$.type = string("BOOL");
 				}
 			| Exp REL_OP Exp 
 				{
 					//cout << "Exp REL_OP Exp" << endl;
-					if ($1.type == string("int") && $3.type == string("int")) {
-						$$.type = string("bool");
+					if ($1.type == string("INT") && $3.type == string("INT")) {
+						$$.type = string("BOOL");
 						/////handle > / < / <= / >=
 					}					
 					else if (isTemperture($1.type) && isTemperture($3.type)) {
-								$$.type = string("bool");
+								$$.type = string("BOOL");
 								/////handle > / < / <= / >=
 					} else {
 						errorMismatch(yylineno);
@@ -431,12 +431,12 @@ Exp		  : LP Exp RP
 				}	
 			//~ | Exp EQ_OP Exp
 				//~ {
-					//~ if ($1.type == string("int") && $3.type == string("int")) {
-						//~ $$.type = string("bool");
+					//~ if ($1.type == string("INT") && $3.type == string("INT")) {
+						//~ $$.type = string("BOOL");
 						//~ $$.val = ($1.val == $3.val);						
 					//~ }					
 					//~ if (isTemperture($1.type) && isTemperture($3.type)) {
-						//~ $$.type = string("bool");
+						//~ $$.type = string("BOOL");
 						//~ $$.val = ($1.val == $3.val);	
 					//~ }
 					//~ errorMismatch(yylineno);
@@ -487,8 +487,8 @@ void yyerror(const char*){
 }
 
 bool checkAssignmentTyps(string t1, string t2) {	
-	if (t2 == string("bool") && t1 != string("bool")) return false;
-	if (t2 == string("int") && t1 != string("int")) return false;
+	if (t2 == string("BOOL") && t1 != string("BOOL")) return false;
+	if (t2 == string("INT") && t1 != string("INT")) return false;
 	if (isTemperture(t2) && !isTemperture(t1)) return false;
 	
 	return true;
@@ -502,7 +502,7 @@ string findVarType(string id) {
 	return string("");
 }
 bool isTemperture(string type) {
-	return (type == string("fah") || type == string("cel") || type == string("kel"));
+	return (type == string("FAHRENHEIT") || type == string("CELSIUS") || type == string("KELVIN"));
 }
 
 void printStype(YYSTYPE yst, string msg){

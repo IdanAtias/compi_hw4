@@ -3,6 +3,7 @@
 	#include "output.hpp"
 	#include "symTable.hpp"
 	#include <iostream>
+	#include <stdio.h>
 	#include <vector>
 	#include <stack>
 	
@@ -12,12 +13,14 @@
 	extern int yylex();
 	extern int yylineno;
 	extern const char* yytext;
+	extern FILE* yyin;
 	
 	void yyerror(const char*);
 	bool isTemperture(string type);
 	bool checkAssignmentTyps(string t1, string t2);
 	string findVarType(string id);
 	void printStype(YYSTYPE yst, string msg);
+	bool isVarDefined(string id);
 
 	vector<SymTable> tablesStack;
 	stack<int> offsetStack;
@@ -37,7 +40,6 @@
 %right ASSIGN
 %left OR
 %left AND
-//~ %left EQ_OP
 %left REL_OP
 %left PLUS MINUS
 %left MULT DIV
@@ -70,7 +72,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						tablesStack.push_back(SymTable());
 						offsetStack.push(offsetStack.top());
 					}
-					if (tablesStack.back().isVarDefined($2.id)) {
+					if (isVarDefined($2.id)) {
 						errorDef(yylineno, $2.id.c_str());
 						exit(1);
 					}
@@ -96,7 +98,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						tablesStack.push_back(SymTable());
 						offsetStack.push(offsetStack.top());
 					}
-					if (tablesStack.back().isVarDefined($2.id)) {
+					if (isVarDefined($2.id)) {
 						errorDef(yylineno, $2.id.c_str());
 						exit(1);
 					}
@@ -120,17 +122,16 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 			| setCondFlagOff ID ASSIGN Exp SC
 				{
 					//cout << "ID ASSIGN Exp SC" << endl;
-					string idType = findVarType($1.id);
+					string idType = findVarType($2.id);
 					if (idType == string("")) {
-						errorUndef(yylineno, $1.id.c_str());
+						errorUndef(yylineno, $2.id.c_str());
 						exit(1);
 					}
 					
-					if (!checkAssignmentTyps(idType, $3.type)) {
+					if (!checkAssignmentTyps(idType, $4.type)) {
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					//~ $1.val = $3.val; 
 				}
 			| setCondFlagOff PRINT STRING SC { 
 				//cout << "PRINT STRING SC" << endl; 
@@ -138,9 +139,9 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 			| setCondFlagOff PRINT ID SC
 				{
 					//cout << "PRINT ID SC" << endl;
-					string idType = findVarType($2.id);
+					string idType = findVarType($3.id);
 					if (idType == string("")){
-						errorUndef(yylineno, $2.id.c_str());
+						errorUndef(yylineno, $3.id.c_str());
 						exit(1);
 					}
 					if (idType == string("BOOL")){
@@ -151,9 +152,9 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 			| setCondFlagOff INPUT ID SC
 				{
 					//cout << "INPUT ID SC" << endl;
-					string idType = findVarType($2.id);
+					string idType = findVarType($3.id);
 					if (idType == string("")){
-						errorUndef(yylineno, $2.id.c_str());
+						errorUndef(yylineno, $3.id.c_str());
 						exit(1);
 					}
 					if (idType == string("BOOL")){
@@ -174,9 +175,6 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				{
 					//cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
 						whileCounter--;
-					//~ if ($3.val == 1){
-						//~ condScopeFlag = true;
-					//~ }
 				}
 			| setCondFlagOff BREAK SC
 				{
@@ -431,20 +429,7 @@ Exp		  : LP Exp RP
 						errorMismatch(yylineno);
 						exit(1);
 					}
-				}	
-			//~ | Exp EQ_OP Exp
-				//~ {
-					//~ if ($1.type == string("INT") && $3.type == string("INT")) {
-						//~ $$.type = string("BOOL");
-						//~ $$.val = ($1.val == $3.val);						
-					//~ }					
-					//~ if (isTemperture($1.type) && isTemperture($3.type)) {
-						//~ $$.type = string("BOOL");
-						//~ $$.val = ($1.val == $3.val);	
-					//~ }
-					//~ errorMismatch(yylineno);
-					//~ exit(1);
-				//~ }
+				}
 
 setCondFlagOff	: {
 					condScopeFlag = false;
@@ -489,8 +474,6 @@ StartScopeMarker	:	{
 							tablesStack.push_back(SymTable());
 							offsetStack.push(offsetStack.top());
 						}
-						
-//~ M1		: {cout <<"in M1"<<endl;}
 
 %%
 
@@ -514,6 +497,16 @@ string findVarType(string id) {
 	}
 	return string("");
 }
+
+bool isVarDefined(string id){
+	for (vector<SymTable>::reverse_iterator iter = tablesStack.rbegin(); iter != tablesStack.rend(); ++iter) {
+		if(iter->isVarDefined(id)) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool isTemperture(string type) {
 	return (type == string("FAHRENHEIT") || type == string("CELSIUS") || type == string("KELVIN"));
 }
@@ -524,6 +517,14 @@ void printStype(YYSTYPE yst, string msg){
 	cout << "id = " + yst.id << endl;
 	//~ cout << "val = " + yst.val << endl;	
 }
-int main() {
-	return yyparse();
+int main(int argc, char* argv[]) {
+	if (argc < 2) {
+		exit(1);
+	}
+	yyin = fopen(argv[1], "r");
+	int parse_res = yyparse();
+	if (yyin != NULL){
+		fclose(yyin);
+	}
+	return parse_res;
 }

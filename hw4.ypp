@@ -187,7 +187,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| SWITCH LP ForceTempExp RP LC StartScopeMarker CasesList EndScopeMarker RC
+			| SWITCH LP ForceTempExp RP LC CasesList RC
 				{
 					//cout << "SWITCH LP Exp RP LC StartScopeMarker CasesList EndScopeMarker RC" << endl;
 				}

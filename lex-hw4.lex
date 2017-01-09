@@ -23,8 +23,7 @@
 %option yylineno
 %option noyywrap
 
-rel_op			(<=|>=|>|<)
-eq_op			(==|!=)
+rel_op			(<=|>=|>|<|==|!=)
 id				([a-zA-Z_]+)
 string			(\"[^"]*\")
 num				([1-9][0-9]*|0)
@@ -97,7 +96,6 @@ case 			handleToken(CASE);
 
 
 {rel_op}		handleToken(REL_OP);
-{eq_op}			handleToken(EQ_OP);
 {id}			{
 					yylval.id = yytext;
 					return ID;

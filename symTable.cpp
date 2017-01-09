@@ -4,28 +4,33 @@
 
 void SymTable::insertVar(string id, string type, int offset) {
 	TableLine line;
-	line.name = id;
+	line.id = id;
 	line.type = type;
 	line.offset = offset;
-	table.insert(std::pair<string, TableLine>(id, line));
+	table.push_back(line);
 	//~ this->printTable();
 }
 
 bool SymTable::isVarDefined(string id) const {
-	return table.end() != table.find(id);
+	for (vector<TableLine>::const_iterator it = table.begin(); it != table.end(); it++){
+		if (it->id == id){
+			return true;
+		}
+	}
+	return false;
 }
 
 void SymTable::printTable() const {
-	for (map<string, TableLine>::const_iterator iter = table.begin() ; iter != table.end() ; ++iter) {
-		output::printVar((iter->first).c_str(), iter->second.offset, (iter->second.type).c_str());
+	for (vector<TableLine>::const_iterator it = table.begin(); it != table.end(); it++){
+		output::printVar(it->id.c_str(), it->offset, it->type.c_str());
 	}
 }
 
 string SymTable::getVarType(string id) const {
-
-	if (table.find(id) != table.end()){
-			return (table.find(id))->second.type;
+	for (vector<TableLine>::const_iterator it=table.begin(); it != table.end(); it++){
+		if (it->id == id){
+			return it->type;
+		}
 	}
-	
 	return string("");
 }

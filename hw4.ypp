@@ -64,6 +64,8 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				{
 					//~ cout << "Type ID SC" << endl;
 					$2.type = $1.type;
+					//~ cout << yytext << endl;
+					//~ cout << condScopeFlag << endl;
 					if (condScopeFlag){
 						tablesStack.push_back(SymTable());
 						offsetStack.push(offsetStack.top());
@@ -102,7 +104,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					$2.val = $4.val;
+					//~ $2.val = $4.val;
 					tablesStack.back().insertVar($2.id, $2.type, offsetStack.top());
 					int newOffset = offsetStack.top() + OFFSET_SIZE;
 					offsetStack.pop();
@@ -115,7 +117,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						offsetStack.pop();
 					}
 				}
-			| ID ASSIGN Exp SC
+			| setCondFlagOff ID ASSIGN Exp SC
 				{
 					//cout << "ID ASSIGN Exp SC" << endl;
 					string idType = findVarType($1.id);
@@ -128,12 +130,12 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					$1.val = $3.val; 
+					//~ $1.val = $3.val; 
 				}
-			| PRINT STRING SC { 
+			| setCondFlagOff PRINT STRING SC { 
 				//cout << "PRINT STRING SC" << endl; 
 				}
-			| PRINT ID SC
+			| setCondFlagOff PRINT ID SC
 				{
 					//cout << "PRINT ID SC" << endl;
 					string idType = findVarType($2.id);
@@ -146,7 +148,7 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| INPUT ID SC
+			| setCondFlagOff INPUT ID SC
 				{
 					//cout << "INPUT ID SC" << endl;
 					string idType = findVarType($2.id);
@@ -159,16 +161,16 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| IF LP ForceBoolExp RP stmt %prec IFX
+			| IF LP ForceBoolExp SetCondFlagOn RP stmt %prec IFX
 				{
 					//~ cout << "IF LP Exp RP stmt %prec IFX" << endl;
 				}
-			| IF LP ForceBoolExp RP stmt ELSE SetCondFlagOn stmt 
+			| IF LP ForceBoolExp SetCondFlagOn RP stmt ELSE SetCondFlagOn stmt 
 				{
 					//~ cout << "IF LP Exp RP stmt ELSE stmt" << endl;
 					//~ condScopeFlag = 1;
 				}
-			| WHILE LP ForceBoolExp RP WhileMarker stmt
+			| WHILE LP ForceBoolExp SetCondFlagOn RP WhileMarker stmt
 				{
 					//cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
 						whileCounter--;
@@ -176,9 +178,10 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						//~ condScopeFlag = true;
 					//~ }
 				}
-			| BREAK SC
+			| setCondFlagOff BREAK SC
 				{
-					//cout << "BREAK SC" << endl;
+					//~ cout << "BREAK SC" << endl;
+					//~ cout << condScopeFlag << endl;
 					if (whileCounter <= 0 ) {
 						errorUnexpectedBreak(yylineno);
 						exit(1);
@@ -195,11 +198,6 @@ CasesList : CaseStat CasesList {
 			| CaseStat { 
 				//cout << "CaseStat " << endl;
 				}
-				
-SetCondFlagOn : {
-				//cout << "setCondFlag " << endl;
-				condScopeFlag = true;
-				}
 
 CaseStat  : CASE NUM TempType COLON SetCondFlagOn stmt BREAK SC
 				{ 
@@ -210,32 +208,32 @@ TempType  : CELSIUS
 				{
 					//cout << "CELSIUS" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| FAHRENHEIT
 				{
 					//cout << "FAHRENHEIT" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| KELVIN
 				{
 					//cout << "KELVIN" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			
 Type	  : TempType
 				{
 					//cout << "TempType" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| INT
 				{
 					//cout << "INT" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 					//~ printStype($1, "INT");
 					//~ printStype($$, "Type");
 				}
@@ -243,7 +241,7 @@ Type	  : TempType
 				{
 					//cout << "BOOL" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 				
 ForceTempExp	: Exp
@@ -261,21 +259,21 @@ ForceBoolExp	: 	Exp
 							errorMismatch(yylineno);
 							exit(1);
 						}
-						condScopeFlag = true;
+						//~ condScopeFlag = true;
 						$$ = $1;
 					}
 Exp		  : LP Exp RP 
 				{
 					//cout << "LP Exp RP" << endl;
 					$$.type = $2.type;
-					$$.val = $2.val;
+					//~ $$.val = $2.val;
 				}
 			| Exp PLUS Exp
 				{
 					//cout << "Exp PLUS Exp" << endl;
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
-						$$.val = $1.val + $3.val;
+						//~ $$.val = $1.val + $3.val;
 					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = $1.type;
 					//	$$.val = $1.val + $3.val;
@@ -289,7 +287,7 @@ Exp		  : LP Exp RP
 					//cout << "Exp MINUS Exp" << endl;
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
-						$$.val = $1.val - $3.val;
+						//~ $$.val = $1.val - $3.val;
 					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = $1.type;
 					//	$$.val = $1.val - $3.val; //need to convert
@@ -311,12 +309,12 @@ Exp		  : LP Exp RP
 					}
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
-						$$.val = $1.val * $3.val;
+						//~ $$.val = $1.val * $3.val;
 					} else /*1 temp & 1 int*/ {
 						YYSTYPE temp = isTemperture($1.type) ? $1 : $3;
 						YYSTYPE num = !isTemperture($1.type) ? $1 : $3;
 						$$.type = temp.type;
-						$$.val = temp.val * num.val;
+						//~ $$.val = temp.val * num.val;
 					}
 				}
 			| Exp DIV Exp
@@ -324,13 +322,13 @@ Exp		  : LP Exp RP
 					//cout << "Exp DIV Exp" << endl;
 					if ($1.type == string("INT") && $3.type == string("INT")) {
 						$$.type = $1.type;
-						$$.val = $1.val / $3.val;
+						//~ $$.val = $1.val / $3.val;
 					} else if (isTemperture($1.type) && isTemperture($3.type)) {
 						$$.type = string("INT");
 					//	$$.val = $1.type / $3.type;
 					} else if(isTemperture($1.type) && $3.type == string("INT")) {
 						$$.type = $1.type;
-						$$.val = $1.val / $3.val;
+						//~ $$.val = $1.val / $3.val;
 					} else {
 						errorMismatch(yylineno);
 						exit(1);
@@ -346,7 +344,7 @@ Exp		  : LP Exp RP
 					}
 					$$.type = varType;
 					$$.id = $1.id;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| NUM
 				{
@@ -356,7 +354,7 @@ Exp		  : LP Exp RP
 						exit(1);
 					}
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| NUM TempType 
 				{
@@ -367,19 +365,19 @@ Exp		  : LP Exp RP
 						exit(1);
 					}
 					$$.type = $2.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| TRUE
 				{
 					//cout << "TRUE" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| FALSE
 				{
 					//cout << "FALSE" << endl;
 					$$.type = $1.type;
-					$$.val = $1.val;
+					//~ $$.val = $1.val;
 				}
 			| NOT Exp 
 				{
@@ -389,7 +387,7 @@ Exp		  : LP Exp RP
 						exit(1);
 					}
 					$$.type = string("BOOL");
-					$$.val = !($2.val);
+					//~ $$.val = !($2.val);
 				}
 			| Exp OR Exp
 				{
@@ -398,11 +396,11 @@ Exp		  : LP Exp RP
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					if ($1.val == 1 || $3.val == 1){
-						$$.val = 1;
-					} else {
-						$$.val = 0;
-					}
+					//~ if ($1.val == 1 || $3.val == 1){
+						//~ $$.val = 1;
+					//~ } else {
+						//~ $$.val = 0;
+					//~ }
 					$$.type = string("BOOL");
 				}
 			| Exp AND Exp
@@ -412,11 +410,11 @@ Exp		  : LP Exp RP
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					if ($1.val == 0 || $3.val == 0){
-						$$.val = 0;
-					} else {
-						$$.val = 1;
-					}
+					//~ if ($1.val == 0 || $3.val == 0){
+						//~ $$.val = 0;
+					//~ } else {
+						//~ $$.val = 1;
+					//~ }
 					$$.type = string("BOOL");
 				}
 			| Exp REL_OP Exp 
@@ -447,7 +445,16 @@ Exp		  : LP Exp RP
 					//~ errorMismatch(yylineno);
 					//~ exit(1);
 				//~ }
-				
+
+setCondFlagOff	: {
+					condScopeFlag = false;
+				  }
+
+SetCondFlagOn : {
+				//cout << "setCondFlag " << endl;
+				condScopeFlag = true;
+				}
+
 InitMarker	:	{
 					//cout << "InitMarker" << endl;
 					tablesStack.push_back(SymTable());
@@ -515,7 +522,7 @@ void printStype(YYSTYPE yst, string msg){
 	cout << msg + ":" << endl;
 	cout << "type = " + yst.type << endl;
 	cout << "id = " + yst.id << endl;
-	cout << "val = " + yst.val << endl;	
+	//~ cout << "val = " + yst.val << endl;	
 }
 int main() {
 	return yyparse();

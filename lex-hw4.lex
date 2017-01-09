@@ -29,12 +29,12 @@ string			(\"[^"]*\")
 num				([1-9][0-9]*|0)
 nlAndTab		([\t\n\r])
 cpp_comment		("//"[^\n]*\n)
-whitespace		([ ])
-ignore			({nlAndTab}|{cpp_comment}|{whitespace})
+ignore			([\t\n\r ])
 
 %%
 
 {ignore}		{};
+{cpp_comment}   {};
 \(			handleToken(LP);
 \)			handleToken(RP);
 \{			handleToken(LC);
@@ -46,6 +46,7 @@ ignore			({nlAndTab}|{cpp_comment}|{whitespace})
 [-]			handleToken(MINUS);
 [*] 		handleToken(MULT);
 [/]			handleToken(DIV);
+{rel_op}	handleToken(REL_OP);
 and			handleToken(AND);
 or			handleToken(OR);
 C			{
@@ -64,12 +65,12 @@ int			{
 				yylval.type = "INT";
 				return INT;	
 			};
+print			handleToken(PRINT);
+input 			handleToken(INPUT);
 {string}	{
 				yylval.id = yytext; 	  
 				return STRING;     	
 			};
-print			handleToken(PRINT);
-input 			handleToken(INPUT);
 true			{
 					yylval.type = "BOOL";   
 					return TRUE;	
@@ -94,8 +95,7 @@ bool			{
 switch			handleToken(SWITCH);
 case 			handleToken(CASE);
 
-
-{rel_op}		handleToken(REL_OP);
+:               handleToken(COLON);
 {id}			{
 					yylval.id = yytext;
 					return ID;

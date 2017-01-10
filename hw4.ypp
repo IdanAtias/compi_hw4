@@ -58,7 +58,7 @@ aux		: 	stmt aux {
 			| { 
 				//cout << "epsilon" << endl;
 				}
-stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
+stmt	: 	StartScopeMarker LC stmts RC EndScopeMarker
 				{
 					//cout << "LC StartScopeMarker stmts EndScopeMarker RC" << endl;
 				}	

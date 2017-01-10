@@ -62,62 +62,38 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 				{
 					//cout << "LC StartScopeMarker stmts EndScopeMarker RC" << endl;
 				}	
-			| Type ID SC
+			| StartScopeMarkerIfCond Type ID SC
 				{
 					//~ cout << "Type ID SC" << endl;
-					$2.type = $1.type;
+					$3.type = $2.type;
 					//~ cout << yytext << endl;
 					//~ cout << condScopeFlag << endl;
-					if (condScopeFlag){
-						tablesStack.push_back(SymTable());
-						offsetStack.push(offsetStack.top());
-					}
-					if (isVarDefined($2.id)) {
-						errorDef(yylineno, $2.id.c_str());
+					if (isVarDefined($3.id)) {
+						errorDef(yylineno, $3.id.c_str());
 						exit(1);
 					}
-					tablesStack.back().insertVar($2.id, $2.type, offsetStack.top());
+					tablesStack.back().insertVar($3.id, $3.type, offsetStack.top());
 					int newOffset = offsetStack.top() + OFFSET_SIZE;
 					offsetStack.pop();
-					offsetStack.push(newOffset);
-					
-					if (condScopeFlag) {
-						condScopeFlag = false;
-						endScope();
-						tablesStack.back().printTable();
-						tablesStack.pop_back();
-						offsetStack.pop();
-					}			
+					offsetStack.push(newOffset);		
 				}
-			| Type ID ASSIGN Exp SC 
+			| StartScopeMarkerIfCond Type ID ASSIGN Exp SC 
 				{
 					//~ cout << "Type ID ASSIGN Exp SC" << endl;
 					//~ cout << "cond: "<<condScopeFlag << endl;
-					$2.type = $1.type;
-					if (condScopeFlag){
-						tablesStack.push_back(SymTable());
-						offsetStack.push(offsetStack.top());
-					}
-					if (isVarDefined($2.id)) {
-						errorDef(yylineno, $2.id.c_str());
+					$3.type = $2.type;
+					if (isVarDefined($3.id)) {
+						errorDef(yylineno, $3.id.c_str());
 						exit(1);
 					}
-					if (!checkAssignmentTyps($1.type, $4.type)) {
+					if (!checkAssignmentTyps($2.type, $5.type)) {
 						errorMismatch(yylineno);
 						exit(1);
 					}
-					//~ $2.val = $4.val;
-					tablesStack.back().insertVar($2.id, $2.type, offsetStack.top());
+					tablesStack.back().insertVar($3.id, $3.type, offsetStack.top());
 					int newOffset = offsetStack.top() + OFFSET_SIZE;
 					offsetStack.pop();
 					offsetStack.push(newOffset);
-					if (condScopeFlag) {
-						condScopeFlag = false;
-						endScope();
-						tablesStack.back().printTable();
-						tablesStack.pop_back();
-						offsetStack.pop();
-					}
 				}
 			| setCondFlagOff ID ASSIGN Exp SC
 				{
@@ -162,16 +138,16 @@ stmt	: 	LC StartScopeMarker stmts EndScopeMarker RC
 						exit(1);
 					}
 				}
-			| IF LP ForceBoolExp SetCondFlagOn RP stmt %prec IFX
+			| IF LP ForceBoolExp SetCondFlagOn RP stmt EndScopeMarkerIfCond %prec IFX
 				{
 					//~ cout << "IF LP Exp RP stmt %prec IFX" << endl;
 				}
-			| IF LP ForceBoolExp SetCondFlagOn RP stmt ELSE SetCondFlagOn stmt 
+			| IF LP ForceBoolExp SetCondFlagOn RP stmt EndScopeMarkerIfCond ELSE SetCondFlagOn stmt EndScopeMarkerIfCond
 				{
 					//~ cout << "IF LP Exp RP stmt ELSE stmt" << endl;
 					//~ condScopeFlag = 1;
 				}
-			| WHILE LP ForceBoolExp SetCondFlagOn RP WhileMarker stmt
+			| WHILE LP ForceBoolExp SetCondFlagOn RP WhileMarker stmt EndScopeMarkerIfCond
 				{
 					//cout << "WHILE LP Exp RP WhileMarker stmt" << endl;
 						whileCounter--;
@@ -197,7 +173,7 @@ CasesList : CaseStat CasesList {
 				//cout << "CaseStat " << endl;
 				}
 
-CaseStat  : CASE NUM TempType COLON SetCondFlagOn stmt BREAK SC
+CaseStat  : CASE NUM TempType COLON SetCondFlagOn stmt BREAK SC EndScopeMarkerIfCond
 				{ 
 					//cout << "CASE NUM TempType COLON StartScopeMarker stmt BREAK SC EndScopeMarker " << endl;
 				}
@@ -474,6 +450,23 @@ StartScopeMarker	:	{
 							tablesStack.push_back(SymTable());
 							offsetStack.push(offsetStack.top());
 						}
+
+EndScopeMarkerIfCond	:	{
+								if (condScopeFlag){
+									condScopeFlag = false;
+									endScope();
+									tablesStack.back().printTable();
+									tablesStack.pop_back();
+									offsetStack.pop();
+								}
+							}				
+					
+StartScopeMarkerIfCond	:	{
+								if (condScopeFlag){
+									tablesStack.push_back(SymTable());
+									offsetStack.push(offsetStack.top());
+								}
+							}
 
 %%
 

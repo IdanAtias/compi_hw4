@@ -1,0 +1,14 @@
+F x = 1 F;
+bool b = x > 1 F;
+while ( true and b){
+	F z = 10 F;
+	while( false or b){
+		F y;
+		input y;
+		if ( y >= x and y <= z){
+			print "impossible" ;		
+		}
+	}
+}
+C y = 100 C;
+%num = 10; 

@@ -1,0 +1,9 @@
+
+F i=0 F;
+while(true){
+	i=i+1 F;
+	if(i==8 F)
+		break;
+}
+
+F done;

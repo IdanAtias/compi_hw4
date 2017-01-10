@@ -1,0 +1,6 @@
+F x;
+switch(40 C){
+	case 20 C: x = 2 F+3 C; break;
+	case 30 F: print "42"; break;
+	case 23 K: bool x; break;
+}

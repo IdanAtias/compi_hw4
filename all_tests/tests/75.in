@@ -1,0 +1,26 @@
+while(true){
+	bool x;
+	bool y;
+	bool z;
+	z = y > x;
+	x = y < z;
+	z = y >= z;
+	x = z <= y;
+	z = z > z;
+	if(true)
+		if(true)
+			if(true)
+				break;
+}
+while(true){
+	while(true){
+		while(true){
+			break;
+		}
+		break;
+	}
+	break;
+}
+bool x;
+K a;
+x = x > a;

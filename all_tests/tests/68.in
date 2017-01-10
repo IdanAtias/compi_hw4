@@ -1,0 +1,9 @@
+bool f = true;
+switch(f){ 
+	case 2 C: C y = 1 C;
+	break;
+	case 7 F: C y = 2 C;
+	break;
+	case 10 K: C y = 3 C;
+	break;
+}

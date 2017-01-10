@@ -1,0 +1,8 @@
+// comments
+F x;
+// comment
+{
+F y;
+}
+F z;
+

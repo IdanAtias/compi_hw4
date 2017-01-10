@@ -1,0 +1,14 @@
+bool bo;
+C d;
+F b;
+K h;
+
+// this should work
+b = d;
+d = h;
+h = b;
+
+// this should fail
+bo = d;
+bo = b;
+bo = h;

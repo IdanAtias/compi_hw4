@@ -1,0 +1,24 @@
+//ignore one line comments
+bool a;
+
+//ignore tab, space, new line
+bool b  ;
+bool   c;
+
+//bool d;
+
+//else belongs to the most inner if
+F ba = 1 F;
+F bb = 2 F;
+F bc = 3 F;
+F bd = 4 F;
+if(ba<bb)
+{
+    if(bb<bc)
+        F be = 5 F;
+    else
+        F bf =6 F;
+}
+else
+    F bg = 7 F;
+

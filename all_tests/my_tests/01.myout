@@ -1,0 +1,6 @@
+-- end scope --
+var:tom:2:KELVIN
+-- end scope --
+-- end scope --
+var:tom:2:KELVIN
+line 8: variable d is already defined

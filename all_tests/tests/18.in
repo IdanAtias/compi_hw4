@@ -1,0 +1,7 @@
+F a;
+C x;
+a=x;
+F = x+coin;
+
+F w=x;
+

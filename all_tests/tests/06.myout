@@ -1,0 +1,4 @@
+-- end scope --
+var:z:2:FAHRENHEIT
+var:w:3:FAHRENHEIT
+line 8: type mismatch

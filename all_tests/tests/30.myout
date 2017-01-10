@@ -1,0 +1,6 @@
+-- end scope --
+-- end scope --
+var:y:3:KELVIN
+-- end scope --
+var:z:2:KELVIN
+line 14: lexical error

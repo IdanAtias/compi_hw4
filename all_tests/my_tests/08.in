@@ -1,0 +1,13 @@
+while(1<4)
+{
+	break;
+}
+while(1<4+5)
+{
+	K f = 1 K;
+	K d = 1 K;
+	if(d) K f = 2 C;
+	while(false) f = 3 C;
+	break;
+}
+break;

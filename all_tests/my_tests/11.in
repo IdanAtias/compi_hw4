@@ -1,0 +1,8 @@
+
+bool d = true;
+if(not d)
+{
+	K f = 1 K;
+	if(not f) 
+		break;
+}

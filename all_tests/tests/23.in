@@ -1,0 +1,4 @@
+bool a;
+C b;
+b = b/a;
+

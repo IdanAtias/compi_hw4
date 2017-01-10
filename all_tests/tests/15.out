@@ -1,0 +1,4 @@
+-- end scope --
+var:a:0:BOOL
+var:b:1:BOOL
+var:c:2:BOOL

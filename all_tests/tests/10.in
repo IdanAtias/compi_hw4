@@ -1,0 +1,8 @@
+F x;
+F y;
+while(x<y) {
+	F z;
+	break;
+}
+F w;
+

@@ -1,0 +1,7 @@
+C x = 5 C;
+switch(x)
+{
+	case 6 C:
+		C d = 6 F;
+		break;
+}

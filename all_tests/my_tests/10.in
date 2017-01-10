@@ -1,0 +1,9 @@
+
+C s = 1 C;
+K d = 2 K;
+F b = 3 F;
+s = b*(s/b);
+K seq = 3 C;
+K sea = 3 F;
+K sez = 3 bool;
+

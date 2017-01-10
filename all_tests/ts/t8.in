@@ -1,0 +1,10 @@
+if(1+2<3-2)
+    F ba;
+if(1*2<6/3)
+    F bb;
+
+C da = 1 C;
+C db = 2 C;
+C dc = da+db;
+int dd = dc/da;
+C de = db/dd;

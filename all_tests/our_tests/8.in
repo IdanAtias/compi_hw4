@@ -1,0 +1,11 @@
+C x;
+print x;
+print "t";
+while(true){
+	print "fd";
+	print x;
+	F y;
+	bool z;
+	x = (x+y) ;
+	x = x+z;
+}

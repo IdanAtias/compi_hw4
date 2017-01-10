@@ -1,0 +1,9 @@
+// logic type
+K h = 1 K;
+
+F ba=1 F;
+C d = 2 C;
+if(ba<d)
+{
+    h=5 F;
+}

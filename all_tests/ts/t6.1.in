@@ -1,0 +1,7 @@
+// logic type
+K h = 1 K;
+
+if (true and true)
+{
+    h=2 F;
+}

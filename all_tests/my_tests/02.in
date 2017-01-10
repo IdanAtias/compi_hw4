@@ -1,0 +1,4 @@
+C s;
+print s;
+input s;
+print true;

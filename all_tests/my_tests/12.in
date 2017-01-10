@@ -1,0 +1,7 @@
+		
+
+F d = 1 F;
+F f = 2 F;
+if(1 <= 2 and 2>3 or 4>=5 and d == f)
+	bool g = 3 C;
+

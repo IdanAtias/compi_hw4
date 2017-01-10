@@ -1,0 +1,16 @@
+while(true){
+	while(false)
+		break;
+	break;
+	C x;
+	if(1==9)break;
+	C y;
+	C z;
+	C m;
+	y=z;
+	switch(m){
+		case 4 C:
+			print "t";
+			break;
+	}
+}

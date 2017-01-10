@@ -1,0 +1,5 @@
+-- end scope --
+-- end scope --
+var:x:0:CELSIUS
+var:y:1:KELVIN
+var:z:2:FAHRENHEIT

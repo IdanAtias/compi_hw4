@@ -1,0 +1,4 @@
+bool b;
+while(b)
+	break;
+

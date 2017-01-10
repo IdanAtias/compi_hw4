@@ -1,0 +1,10 @@
+-- end scope --
+var:die:5:KELVIN
+-- end scope --
+var:i:2:KELVIN
+var:hate:3:BOOL
+var:this:4:CELSIUS
+var:blah:5:KELVIN
+-- end scope --
+var:x:0:KELVIN
+var:w:1:KELVIN

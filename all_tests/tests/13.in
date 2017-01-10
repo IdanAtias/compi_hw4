@@ -1,0 +1,3 @@
+C a;
+if(a)
+	print "g";

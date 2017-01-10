@@ -1,0 +1,8 @@
+C x;
+switch(5 C) {
+	case 8 K:x=5
+	break;
+}
+//should be legal 
+
+

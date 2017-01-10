@@ -1,0 +1,22 @@
+F we = 2 F;
+K hi = 8 K;
+switch(we+hi)
+{
+	case 3 F:
+		C w = 2 C;
+		K t;
+		break;
+	case 2 C:
+		we = (((((((((t = 1 K)))))))));
+		break;
+	case 1 K:
+		K df = 1 K;
+		break;
+}
+switch(w)
+{
+	case 2 K:
+		break;
+	case 3 C:
+		F b = 1 K;
+}

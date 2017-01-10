@@ -1,0 +1,15 @@
+-- end scope --
+var:h:2:KELVIN
+-- end scope --
+var:h:2:KELVIN
+-- end scope --
+var:h:3:CELSIUS
+-- end scope --
+var:qw:4:KELVIN
+-- end scope --
+var:fdr:4:KELVIN
+-- end scope --
+var:r:3:BOOL
+-- end scope --
+var:d:2:KELVIN
+line 26: unexpected break statement

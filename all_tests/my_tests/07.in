@@ -1,0 +1,26 @@
+
+
+bool dana = false;
+bool tom = true;
+if(1 < 2)
+	K h = 4 K;
+else
+	K h = 3 K;
+if(dana)
+{
+	K d = 1 C;
+	if(tom)
+	{
+		C h = 3 K;
+	}
+	else
+	{
+		bool r = false;
+		if(r)
+			K qw;
+		else
+			K fdr;
+	}
+		
+}
+break;

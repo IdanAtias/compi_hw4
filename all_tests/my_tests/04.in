@@ -1,0 +1,4 @@
+C d = 2 C;
+print "d";
+print d;
+print d

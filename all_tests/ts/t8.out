@@ -1,0 +1,10 @@
+-- end scope --
+var:ba:0:FAHRENHEIT
+-- end scope --
+var:bb:0:FAHRENHEIT
+-- end scope --
+var:da:0:CELSIUS
+var:db:1:CELSIUS
+var:dc:2:CELSIUS
+var:dd:3:INT
+var:de:4:CELSIUS

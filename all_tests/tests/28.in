@@ -1,0 +1,8 @@
+bool x;
+switch(x) {
+	case 8 F:x=5;
+	break;
+}
+
+
+

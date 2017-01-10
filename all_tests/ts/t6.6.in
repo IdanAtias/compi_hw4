@@ -1,0 +1,7 @@
+// logic type
+K h = 1 K;
+
+if(1<2)
+{
+    h=4 F;
+}

@@ -1,0 +1,5 @@
+F x;
+switch(40 C){
+	case 20 K: x = 2 F+3 F; break;
+	case 30 K: print "42"; break;
+}

@@ -1,0 +1,4 @@
+F x;
+bool y;
+if(x<y)
+	print "too bad";

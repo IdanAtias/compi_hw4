@@ -1,0 +1,6 @@
+// logic type
+while (false)
+{
+    // this is correct
+    print "way!";
+}

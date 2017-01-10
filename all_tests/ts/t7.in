@@ -1,0 +1,6 @@
+// this shoul fail. input get only numbers
+
+F b = 1 F;
+input b;
+input "input";
+print "way!";

@@ -1,0 +1,20 @@
+F ba = 1 F;
+// this should not fail
+while(true)
+{
+    // define the same var in an inner scope
+    F ba = 2 F;
+    break; 
+}
+F bb = 2 F;
+if (true)
+{
+    // use the same var in an inner scope
+    bb=1 F;
+}
+//this will fail
+if(true)
+{
+    F bc = 3 F;
+    F bc = 4 F;
+}

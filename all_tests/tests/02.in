@@ -1,0 +1,7 @@
+C x =1 C;
+K y = 100 K;
+if(x>y)
+	print "oh no.";
+
+F z;
+

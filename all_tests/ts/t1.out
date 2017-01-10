@@ -1,0 +1,15 @@
+-- end scope --
+var:be:7:FAHRENHEIT
+-- end scope --
+var:bf:7:FAHRENHEIT
+-- end scope --
+-- end scope --
+var:bg:7:FAHRENHEIT
+-- end scope --
+var:a:0:BOOL
+var:b:1:BOOL
+var:c:2:BOOL
+var:ba:3:FAHRENHEIT
+var:bb:4:FAHRENHEIT
+var:bc:5:FAHRENHEIT
+var:bd:6:FAHRENHEIT

@@ -1,0 +1,4 @@
+bool x;
+C y;
+if (x<y)
+	print "hi";

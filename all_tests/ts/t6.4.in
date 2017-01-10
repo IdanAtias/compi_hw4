@@ -1,0 +1,8 @@
+// logic type
+K h = 1 K;
+bool b = true;
+while (b)
+{
+    h=3 K;
+    break;
+}

@@ -1,0 +1,9 @@
+C x;
+F y = 8 F;
+if(x==y)
+{
+	F z;
+	F w;
+}
+bool a=1 F;
+

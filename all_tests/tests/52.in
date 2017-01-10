@@ -1,0 +1,4 @@
+bool d;
+F x;
+F y;
+y = d/x;

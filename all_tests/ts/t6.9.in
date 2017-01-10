@@ -1,0 +1,7 @@
+// logic type
+K h = 1 K;
+while (h)
+{
+    print "no way!";
+}
+bool b = true;

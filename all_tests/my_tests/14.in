@@ -1,0 +1,7 @@
+if(2)
+{
+	print bla;
+}
+else	
+	print "bla bla";
+

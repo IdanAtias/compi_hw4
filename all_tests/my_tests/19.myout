@@ -1,0 +1,5 @@
+-- end scope --
+var:w:1:CELSIUS
+-- end scope --
+var:df:1:KELVIN
+line 15: variable w is not defined

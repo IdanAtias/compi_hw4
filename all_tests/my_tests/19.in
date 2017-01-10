@@ -1,0 +1,21 @@
+
+F we = 2 F;
+switch(we)
+{
+	case 3 F:
+		C w = 2 C;
+		break;
+	case 2 C:
+		we = (((((((((1 F)))))))));
+		break;
+	case 1 K:
+		K df = 1 K;
+		break;
+}
+switch(w)
+{
+	case 2 K:
+		break;
+	case 3 C:
+		F b = 1 F;
+}

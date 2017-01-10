@@ -1,0 +1,4 @@
+while(true){
+	while(5<3)
+		break;
+}

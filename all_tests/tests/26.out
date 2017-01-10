@@ -1,0 +1,5 @@
+-- end scope --
+var:y:1:FAHRENHEIT
+-- end scope --
+var:x:0:FAHRENHEIT
+var:z:1:FAHRENHEIT

@@ -1,0 +1,45 @@
+// logic type
+// all this littele ifs have a meaning switch the order to have results.
+K h = 1 K;
+
+if (true and true)
+{
+    h=2 K;
+}
+if (true and false)
+{
+    print "way!";
+}
+if (1 and true)
+{
+    print "no way!";
+}
+while (h == 2 K)
+{
+    print "no way!";
+}
+bool b = true;
+while (b == 2 K)
+{
+    h=3 C;
+    break;
+}
+while (false)
+{
+    // this is correct
+    print "way!";
+}
+if(1<2)
+{
+    h=4 C;
+}
+F ba=1 F;
+C d = 2 C;
+if(ba<d)
+{
+    h=5 C;
+}
+if (1 and 2)
+{
+    print "no way!";
+}

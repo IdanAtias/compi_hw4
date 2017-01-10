@@ -1,0 +1,5 @@
+bool z;
+C y;
+C x;
+z = y != x;
+x = y == z;

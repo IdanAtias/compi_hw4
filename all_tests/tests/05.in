@@ -1,0 +1,9 @@
+C x;
+C y = 8 C;
+if(x==y)
+{
+	C z;
+	C z;
+}
+C x=1 C;
+

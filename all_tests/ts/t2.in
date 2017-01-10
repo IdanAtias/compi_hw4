@@ -1,0 +1,4 @@
+F ba = 1 F;
+// this should fail
+break; 
+F bb = 2 F;

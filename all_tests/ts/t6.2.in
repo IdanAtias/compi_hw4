@@ -1,0 +1,6 @@
+// logic type
+
+if (true and false)
+{
+    print "way!";
+}

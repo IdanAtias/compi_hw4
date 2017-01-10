@@ -1,0 +1,9 @@
+-- end scope --
+-- end scope --
+var:y:3:CELSIUS
+-- end scope --
+var:z:2:CELSIUS
+-- end scope --
+var:x:0:CELSIUS
+var:b:1:BOOL
+var:y:2:KELVIN

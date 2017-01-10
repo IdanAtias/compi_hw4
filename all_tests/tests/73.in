@@ -1,0 +1,8 @@
+F x;
+switch(x) {
+	case 8 C:x=5
+	break;
+}
+
+
+

@@ -1,0 +1,6 @@
+-- end scope --
+var:x:0:CELSIUS
+var:y:1:CELSIUS
+var:z:2:CELSIUS
+var:m:3:CELSIUS
+-- end scope --

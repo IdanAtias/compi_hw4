@@ -1,0 +1,8 @@
+if(6<5 == 7>6){
+	C x;
+	bool y;
+	if(7==3==y){
+		print "ok";
+	}else
+		F test;
+}

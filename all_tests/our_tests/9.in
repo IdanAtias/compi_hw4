@@ -1,0 +1,8 @@
+F b = 2 F;
+switch(b+5 F)
+{
+    case 3 F:
+        C d = 2 C;
+        K h;
+        break;
+}

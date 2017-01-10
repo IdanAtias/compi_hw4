@@ -1,0 +1,29 @@
+{
+	bool x;
+	C y;
+	bool z = x or (y==5 C== x) and y<6 C!=x;
+	if (z and not x or y==3 C)
+		print "S";
+	else 
+		K x = 3 K;
+	while (false) {
+		C t = 4 C;
+		bool x = y == 4 C;
+		print y;
+		print t;
+		input y;
+		input t;
+		break;
+		switch (t) {
+			case 5 K: while (t==2 C) {
+					break;
+					break;
+				}
+				break;
+			case 3 C: print "s";
+					break;
+			case 5 F: bool y = y == 1 C;
+					break;
+		}
+	} 
+}

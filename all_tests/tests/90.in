@@ -1,0 +1,14 @@
+C x = 1 C;
+bool b = x > 1 C;
+while ( true and b){
+	C z = 10 C;
+	while( false or b){
+		C y;
+		input y;
+		if ( y >= x and y <= z){
+			print "impossible" ;		
+		}
+	}
+}
+K y = 100 K;
+//num = 10; 

@@ -1,0 +1,14 @@
+K x;
+K w;
+while(x<w)
+{
+	K i;
+	bool hate;
+	C this;
+	hate = true;
+	if(hate) {
+		K die;
+		print "boo";
+	}
+	K blah;
+}
